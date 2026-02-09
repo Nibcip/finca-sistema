@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GanaSys - Ventas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root {
+            --apple-green: #32CD32;
+            --apple-green-dark: #228B22;
+            --apple-green-light: #90EE90;
+            --apple-green-very-light: #F0FFF0;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .sidebar {
+            background-color: var(--apple-green-dark) !important;
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid var(--apple-green);
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-header {
+            background-color: var(--apple-green-very-light) !important;
+            border-bottom: 2px solid var(--apple-green-light) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--apple-green-dark) !important;
+            border-color: var(--apple-green-dark) !important;
+        }
+        
+        .btn-success {
+            background-color: var(--apple-green) !important;
+            border-color: var(--apple-green) !important;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+        
+        .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .product-card {
+            transition: all 0.3s ease;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+        
+        .product-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: var(--apple-green);
+        }
+        
+        .product-card .btn-sell {
+            background-color: var(--apple-green);
+            border-color: var(--apple-green);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .product-card .btn-sell:hover {
+            background-color: var(--apple-green-dark);
+            border-color: var(--apple-green-dark);
+            transform: translateY(-2px);
+        }
+        
+        .modal-header {
+            background-color: var(--apple-green-dark);
+            color: white;
+        }
+        
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        
+        .badge-success {
+            background-color: var(--apple-green) !important;
+        }
+        
+        .border-left-primary {
+            border-left: 4px solid #4e73df !important;
+        }
+        
+        .border-left-success {
+            border-left: 4px solid var(--apple-green) !important;
+        }
+        
+        .border-left-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
+        
+        .border-left-info {
+            border-left: 4px solid #36b9cc !important;
+        }
+        
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--apple-green-light);
+            box-shadow: 0 0 0 0.2rem rgba(50, 205, 50, 0.25);
+        }
+        
+        .stock-indicator {
+            font-size: 0.85rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .stock-high {
+            background-color: var(--apple-green-very-light);
+            color: var(--apple-green-dark);
+            border: 1px solid var(--apple-green-light);
+        }
+        
+        .stock-medium {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .stock-low {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cow"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">GanaSys</div>
+        </a>
+        <hr class="sidebar-divider my-0">
+    <ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Inicio</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/users">
+            <i class="fas fa-fw fa-users"></i>
+            <span>Usuarios</span>
+        </a>
+    </li>
+    <% } %>
+    <li class="nav-item">
+        <a class="nav-link" href="/livestock">
+            <i class="fas fa-fw fa-cow"></i>
+            <span>Ganado y Porcinos</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/reproduction">
+            <i class="fas fa-fw fa-heart"></i>
+            <span>Reproducción</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/health">
+            <i class="fas fa-fw fa-syringe"></i>
+            <span>Vacunación y Sanidad</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor') { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/sales">
+            <i class="fas fa-fw fa-dollar-sign"></i>
+            <span>Ventas</span>
+        </a>
+    </li>
+    <% } %>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <!-- INVENTARIO DEBE IR AQUÍ (después de Ventas) -->
+    <li class="nav-item">
+        <a class="nav-link" href="/inventory">
+            <i class="fas fa-fw fa-warehouse"></i>
+            <span>Inventario</span>
+        </a>
+    </li>
+    <% } %>
+    <!-- FIN DEL INVENTARIO -->
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">
+            <i class="fas fa-fw fa-sign-out-alt"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </li>
+</ul>
+    </div>
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                <button id="sidebarToggle" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item dropdown no-arrow">
+                        
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="/logout">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="container-fluid">
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-dollar-sign me-2" style="color: var(--apple-green-dark);"></i>
+                        Ventas de Productos y Animales
+                    </h1>
+                    <button class="btn btn-primary btn-sm" onclick="openNewSaleModal()">
+                        <i class="fas fa-plus fa-sm me-1"></i> Nueva Venta
+                    </button>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Ventas del Mes
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            $<%= stats.monthly_sales ? parseFloat(stats.monthly_sales).toFixed(2) : '0.00' %>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Ventas Completadas
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= stats.completed_sales || 0 %>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Ventas Pendientes
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= stats.pending_sales || 0 %>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Valor Pendiente
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            $<%= stats.pending_amount ? parseFloat(stats.pending_amount).toFixed(2) : '0.00' %>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Historial de Ventas</h6>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary me-2" onclick="exportToExcel()" title="Exportar a Excel">
+                                        <i class="fas fa-file-excel"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="refreshSales()" title="Actualizar">
+                                        <i class="fas fa-sync-alt"></i> Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover" id="salesTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>ID Venta</th>
+                                                <th>Cliente</th>
+                                                <th>Producto</th>
+                                                <th>Cantidad</th>
+                                                <th>Monto</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if (sales && sales.length > 0) { %>
+                                                <% sales.forEach(sale => { %>
+                                                <tr>
+                                                    <td class="font-weight-bold text-primary">
+                                                        <i class="fas fa-receipt me-1"></i><%= sale.id %>
+                                                    </td>
+                                                    <td>
+                                                        <div class="font-weight-bold"><%= sale.client %></div>
+                                                        <div class="text-muted small"><%= sale.date %></div>
+                                                    </td>
+                                                    <td><%= sale.product %></td>
+                                                    <td>
+                                                        <span class="badge bg-secondary"><%= sale.quantity %></span>
+                                                    </td>
+                                                    <td class="font-weight-bold text-success">
+                                                        $<%= parseFloat(sale.amount).toFixed(2) %>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-<%= 
+                                                            sale.status === 'Completada' ? 'success' :
+                                                            sale.status === 'Pendiente' ? 'warning' : 'danger'
+                                                        %>">
+                                                            <i class="fas fa-<%= 
+                                                                sale.status === 'Completada' ? 'check' :
+                                                                sale.status === 'Pendiente' ? 'clock' : 'times'
+                                                            %> me-1"></i>
+                                                            <%= sale.status %>
+                                                        </span>
+                                                    </td>
+                                                   <td>
+    <div class="btn-group btn-group-sm" role="group">
+        <button class="btn btn-outline-primary" onclick="viewSaleDetails('<%= sale.id %>')" title="Ver detalles">
+            <i class="fas fa-eye"></i>
+        </button>
+        <button class="btn btn-outline-info" onclick="editSale('<%= sale.id %>')" title="Editar">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-outline-success" onclick="generateInvoice('<%= sale.id %>')" title="Factura">
+            <i class="fas fa-receipt"></i>
+        </button>
+        <button class="btn btn-outline-danger" onclick="confirmDeleteSale('<%= sale.id %>')" title="Eliminar">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</td>
+                                                </tr>
+                                                <% }); %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td colspan="7" class="text-center text-muted py-4">
+                                                        <i class="fas fa-shopping-cart fa-2x mb-3"></i>
+                                                        <h5 class="mb-3">No hay ventas registradas</h5>
+                                                        <button class="btn btn-primary btn-lg" onclick="openNewSaleModal()">
+                                                            <i class="fas fa-plus me-1"></i> Crear primera venta
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Productos Disponibles</h6>
+                                <button class="btn btn-sm btn-outline-primary" onclick="refreshProducts()" title="Actualizar">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <% if (products && products.length > 0) { %>
+                                    <% products.forEach(product => { 
+                                        let stockClass = 'stock-high';
+                                        let stockStatus = 'Disponible';
+                                        
+                                        if (product.stock <= 0) {
+                                            stockClass = 'stock-low';
+                                            stockStatus = 'Agotado';
+                                        } else if (product.stock <= 10) {
+                                            stockClass = 'stock-medium';
+                                            stockStatus = 'Bajo Stock';
+                                        }
+                                    %>
+                                    <div class="product-card p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="font-weight-bold text-primary mb-0">
+                                                <i class="fas fa-<%= 
+                                                    product.name.toLowerCase().includes('res') ? 'cow' :
+                                                    product.name.toLowerCase().includes('cerdo') ? 'pig' :
+                                                    product.name.toLowerCase().includes('leche') ? 'milk' :
+                                                    product.name.toLowerCase().includes('huevo') ? 'egg' : 'box'
+                                                %> me-2"></i>
+                                                <%= product.name %>
+                                            </h6>
+                                            <span class="stock-indicator <%= stockClass %>">
+                                                <%= stockStatus %>
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="row mb-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">Stock:</small>
+                                                <div class="font-weight-bold h6">
+                                                    <%= product.stock %>
+                                                    <small class="text-muted"><%= product.unit || 'unidad' %></small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Precio:</small>
+                                                <div class="font-weight-bold h6 text-success">
+                                                    $<%= parseFloat(product.price).toFixed(2) %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <button class="btn btn-sell btn-sm w-100" 
+                                                    onclick="quickSellProduct('<%= product.id || product.name %>', '<%= product.name %>', <%= product.price || 0 %>, <%= product.stock || 0 %>)"
+                                                    <%= product.stock <= 0 ? 'disabled' : '' %>>
+                                                <i class="fas fa-cart-plus me-1"></i>
+                                                <%= product.stock > 0 ? 'Vender Rápido' : 'Agotado' %>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                                <% } else { %>
+                                    <div class="text-center py-3 text-muted">
+                                        <i class="fas fa-box-open fa-2x mb-2"></i>
+                                        <h6>No hay productos en inventario</h6>
+                                        <p class="small">Agrega productos desde el módulo de inventario</p>
+                                    </div>
+                                <% } %>
+                                
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="location.href='/inventory'">
+                                        <i class="fas fa-warehouse me-1"></i>Ir al Inventario
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="sticky-footer bg-white mt-4">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; GanaSys <%= new Date().getFullYear() %></span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Nueva Venta -->
+    <div class="modal fade" id="newSaleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Nueva Venta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newSaleForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">ID de Venta</label>
+                                <input type="text" class="form-control" id="saleId" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha *</label>
+                                <input type="date" class="form-control" id="saleDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Cliente *</label>
+                            <input type="text" class="form-control" id="clientName" placeholder="Nombre del cliente" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Producto *</label>
+                            <select class="form-select" id="productSelect" required>
+                                <option value="">Seleccione un producto</option>
+                                <% if (products && products.length > 0) { %>
+                                    <% products.forEach(product => { %>
+                                    <option value="<%= product.id || product.name %>" 
+                                            data-price="<%= product.price || 0 %>" 
+                                            data-stock="<%= product.stock || 0 %>"
+                                            data-name="<%= product.name %>">
+                                        <%= product.name %> - Stock: <%= product.stock %> - $<%= parseFloat(product.price).toFixed(2) %>
+                                    </option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cantidad *</label>
+                                <input type="number" class="form-control" id="quantity" min="1" value="1" required>
+                                <div class="form-text" id="stockInfo">Stock disponible: 0</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Precio Unitario *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="unitPrice" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Monto Total</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="amount" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" id="status">
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Completada" selected>Completada</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Método de Pago</label>
+                            <select class="form-select" id="paymentMethod">
+                                <option value="Efectivo" selected>Efectivo</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Tarjeta">Tarjeta</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notas</label>
+                            <textarea class="form-control" id="notes" rows="2" placeholder="Información adicional..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="saveSaleBtn">
+                        <i class="fas fa-check me-2"></i>Registrar Venta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Venta Rápida -->
+    <div class="modal fade" id="quickSellModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-cart-plus me-2"></i>Venta Rápida</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="quickSellContent">
+                        <!-- Contenido dinámico -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="confirmQuickSellBtn">
+                        <i class="fas fa-check me-2"></i>Confirmar Venta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Detalles -->
+    <div class="modal fade" id="viewSaleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Detalles de Venta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="saleDetails"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Venta -->
+    <div class="modal fade" id="editSaleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Venta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editSaleForm">
+                        <input type="hidden" id="editSaleId">
+                        <div class="mb-3">
+                            <label class="form-label">Cliente *</label>
+                            <input type="text" class="form-control" id="editClientName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Producto *</label>
+                            <input type="text" class="form-control" id="editProduct" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Cantidad *</label>
+                                <input type="number" class="form-control" id="editQuantity" min="1" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Monto Total ($) *</label>
+                                <input type="number" class="form-control" id="editAmount" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Estado *</label>
+                            <select class="form-select" id="editStatus" required>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Completada">Completada</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveEditedSaleBtn">
+                        <i class="fas fa-save me-2"></i>Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="spinner-overlay" id="loadingOverlay" style="display: none;">
+        <div class="text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Procesando...</p>
+        </div>
+    </div>
+
+<!-- TODO EL HTML ANTERIOR PERMANECE IGUAL HASTA ANTES DEL SCRIPT -->
+
+<!-- Agrega esto al final del body, antes de </body> -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// ================ UTILIDADES ================
+const showLoading = () => {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+};
+
+const hideLoading = () => {
+    document.getElementById('loadingOverlay').style.display = 'none';
+};
+
+const showAlert = (icon, title, text) => {
+    Swal.fire({
+        icon: icon,
+        title: title,
+        text: text,
+        timer: 3000,
+        showConfirmButton: false
+    });
+};
+
+// ================ FUNCIONES BÁSICAS ================
+function openNewSaleModal() {
+    const modal = new bootstrap.Modal(document.getElementById('newSaleModal'));
+    
+    // Generar ID único
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    const saleId = `V-${timestamp}-${random}`.substring(0, 10);
+    
+    // Resetear formulario
+    document.getElementById('saleId').value = saleId;
+    document.getElementById('saleDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('clientName').value = '';
+    document.getElementById('productSelect').selectedIndex = 0;
+    document.getElementById('quantity').value = 1;
+    document.getElementById('unitPrice').value = 0;
+    document.getElementById('amount').value = '0.00';
+    document.getElementById('status').value = 'Completada';
+    document.getElementById('paymentMethod').value = 'Efectivo';
+    document.getElementById('notes').value = '';
+    
+    modal.show();
+}
+
+function calculateTotal() {
+    const qty = parseFloat(document.getElementById('quantity').value) || 0;
+    const price = parseFloat(document.getElementById('unitPrice').value) || 0;
+    const total = qty * price;
+    document.getElementById('amount').value = total.toFixed(2);
+}
+
+// ================ EVENTOS AL CARGAR ================
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar fecha actual
+    const today = new Date().toISOString().split('T')[0];
+    if (document.getElementById('saleDate')) {
+        document.getElementById('saleDate').value = today;
+    }
+    
+    // Configurar eventos para cálculo automático
+    const qtyInput = document.getElementById('quantity');
+    const priceInput = document.getElementById('unitPrice');
+    
+    if (qtyInput && priceInput) {
+        qtyInput.addEventListener('input', calculateTotal);
+        priceInput.addEventListener('input', calculateTotal);
+    }
+    
+    // Configurar evento para cambio de producto
+    const productSelect = document.getElementById('productSelect');
+    if (productSelect) {
+        productSelect.addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            const price = selected.getAttribute('data-price') || 0;
+            const stock = selected.getAttribute('data-stock') || 0;
+            
+            document.getElementById('unitPrice').value = price;
+            document.getElementById('quantity').max = stock;
+            
+            calculateTotal();
+        });
+    }
+    
+    // Botón para guardar venta
+    const saveSaleBtn = document.getElementById('saveSaleBtn');
+    if (saveSaleBtn) {
+        saveSaleBtn.onclick = async function() {
+            await saveSale();
+        };
+    }
+});
+
+// ================ GUARDAR VENTA ================
+async function saveSale() {
+    const productSelect = document.getElementById('productSelect');
+    const selectedOption = productSelect.options[productSelect.selectedIndex];
+    
+    if (!selectedOption.value) {
+        showAlert('warning', 'Producto requerido', 'Seleccione un producto');
+        return;
+    }
+    
+    const client = document.getElementById('clientName').value.trim();
+    if (!client) {
+        showAlert('warning', 'Cliente requerido', 'Ingrese el nombre del cliente');
+        document.getElementById('clientName').focus();
+        return;
+    }
+    
+    const quantity = parseInt(document.getElementById('quantity').value);
+    if (!quantity || quantity <= 0) {
+        showAlert('warning', 'Cantidad inválida', 'La cantidad debe ser mayor a 0');
+        return;
+    }
+    
+    const data = {
+        id: document.getElementById('saleId').value,
+        date: document.getElementById('saleDate').value,
+        client: client,
+        product: selectedOption.getAttribute('data-name'),
+        quantity: quantity,
+        unit_price: document.getElementById('unitPrice').value,
+        amount: document.getElementById('amount').value,
+        status: document.getElementById('status').value,
+        payment_method: document.getElementById('paymentMethod').value,
+        notes: document.getElementById('notes').value
+    };
+    
+    showLoading();
+    
+    try {
+        const response = await fetch('/sales/api/create', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('success', '¡Éxito!', result.message || 'Venta registrada correctamente');
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newSaleModal'));
+            if (modal) modal.hide();
+            
+            // Recargar después de 1.5 segundos
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('error', 'Error', result.error || 'Error al registrar la venta');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', 'Error de conexión', 'No se pudo conectar con el servidor');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ================ VENTA RÁPIDA ================
+function quickSellProduct(productId, productName, price, stock) {
+    if (stock <= 0) {
+        showAlert('error', 'Producto agotado', 'No hay stock disponible');
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickSellModal'));
+    
+    document.getElementById('quickSellContent').innerHTML = `
+        <div class="mb-3">
+            <div class="alert alert-info">
+                <p class="mb-1"><strong>Producto:</strong> ${productName}</p>
+                <p class="mb-1"><strong>Precio unitario:</strong> $${parseFloat(price).toFixed(2)}</p>
+                <p class="mb-0"><strong>Stock disponible:</strong> ${stock}</p>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Cliente *</label>
+                <input type="text" id="quickClientName" class="form-control" placeholder="Nombre del cliente" required>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Cantidad *</label>
+                    <input type="number" id="quickQuantity" class="form-control" value="1" min="1" max="${stock}" required>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Precio Unitario ($) *</label>
+                    <input type="number" id="quickUnitPrice" class="form-control" value="${price}" step="0.01" required>
+                </div>
+            </div>
+            
+            <div class="alert alert-light">
+                <div class="d-flex justify-content-between">
+                    <strong>Total:</strong>
+                    <span id="quickTotalAmount" class="fw-bold">$${(price * 1).toFixed(2)}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Configurar evento para confirmar venta rápida
+    const confirmBtn = document.getElementById('confirmQuickSellBtn');
+    if (confirmBtn) {
+        confirmBtn.onclick = async function() {
+            await confirmQuickSell(productName);
+        };
+    }
+}
+
+async function confirmQuickSell(productName) {
+    const client = document.getElementById('quickClientName')?.value.trim();
+    const quantity = parseInt(document.getElementById('quickQuantity')?.value);
+    const unitPrice = parseFloat(document.getElementById('quickUnitPrice')?.value);
+    
+    if (!client) {
+        showAlert('warning', 'Cliente requerido', 'Ingrese el nombre del cliente');
+        document.getElementById('quickClientName')?.focus();
+        return;
+    }
+    
+    const data = {
+        client: client,
+        product: productName,
+        quantity: quantity,
+        unit_price: unitPrice,
+        amount: (quantity * unitPrice).toFixed(2),
+        status: 'Completada',
+        payment_method: 'Efectivo'
+    };
+    
+    showLoading();
+    
+    try {
+        const response = await fetch('/sales/api/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('success', '¡Venta exitosa!', result.message || 'Venta rápida registrada');
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('quickSellModal'));
+            if (modal) modal.hide();
+            
+            // Recargar
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('error', 'Error', result.error || 'Error al registrar la venta');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', 'Error de conexión', 'No se pudo conectar con el servidor');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ================ EXPORTAR A EXCEL ================
+async function exportToExcel() {
+    showLoading();
+    
+    try {
+        const response = await fetch('/sales/api/export');
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `ventas_ganasys_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        showAlert('success', 'Exportado', 'Datos exportados a Excel exitosamente');
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', 'Error', 'No se pudo exportar los datos');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ================ FUNCIONES ADICIONALES ================
+function refreshSales() {
+    showLoading();
+    setTimeout(() => location.reload(), 500);
+}
+
+function refreshProducts() {
+    showLoading();
+    setTimeout(() => location.reload(), 500);
+}
+
+// Funciones placeholder para otras acciones
+function viewSale(id) {
+    showAlert('info', 'Ver detalles', `Ver detalles de venta ${id} (función en desarrollo)`);
+}
+
+function editSale(id) {
+    showAlert('info', 'Editar venta', `Editar venta ${id} (función en desarrollo)`);
+}
+
+function generateInvoice(id) {
+    showAlert('info', 'Factura', `Generar factura para venta ${id} (función en desarrollo)`);
+}
+
+// ================ VER DETALLES DE VENTA ================
+async function viewSaleDetails(saleId) {
+    showLoading();
+    
+    try {
+        const response = await fetch(`/sales/api/details/${saleId}`);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const saleData = await response.json();
+        
+        // Formatear los detalles
+        const detailsHtml = `
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <h6 class="text-muted">Código de Venta</h6>
+                    <p class="fw-bold">${saleData.sale_code || 'N/A'}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <h6 class="text-muted">Fecha</h6>
+                    <p class="fw-bold">${saleData.sale_date || saleData.formatted_date || 'N/A'}</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <h6 class="text-muted">Cliente</h6>
+                    <p class="fw-bold">${saleData.client_name || 'N/A'}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <h6 class="text-muted">Producto</h6>
+                    <p class="fw-bold">${saleData.product_name || 'N/A'}</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-muted">Cantidad</h6>
+                    <p class="fw-bold">${saleData.quantity || 0}</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-muted">Precio Unitario</h6>
+                    <p class="fw-bold">$${parseFloat(saleData.unit_price || 0).toFixed(2)}</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h6 class="text-muted">Total</h6>
+                    <p class="fw-bold text-success">$${parseFloat(saleData.amount || 0).toFixed(2)}</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <h6 class="text-muted">Estado</h6>
+                    <span class="badge bg-${saleData.status === 'Completada' ? 'success' : saleData.status === 'Pendiente' ? 'warning' : 'danger'}">
+                        ${saleData.status || 'N/A'}
+                    </span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <h6 class="text-muted">Método de Pago</h6>
+                    <p class="fw-bold">${saleData.payment_method || 'N/A'}</p>
+                </div>
+            </div>
+            
+            ${saleData.notes ? `
+            <div class="mb-3">
+                <h6 class="text-muted">Notas</h6>
+                <p class="fw-bold">${saleData.notes}</p>
+            </div>
+            ` : ''}
+            
+            <div class="mt-4 pt-3 border-top">
+                <small class="text-muted">ID Interno: ${saleId}</small>
+            </div>
+        `;
+        
+        document.getElementById('saleDetails').innerHTML = detailsHtml;
+        
+        const modal = new bootstrap.Modal(document.getElementById('viewSaleModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('Error loading sale details:', error);
+        showAlert('error', 'Error', 'No se pudieron cargar los detalles de la venta');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ================ EDITAR VENTA ================
+async function editSale(saleId) {
+    showLoading();
+    
+    try {
+        const response = await fetch(`/sales/api/details/${saleId}`);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        const saleData = await response.json();
+        document.getElementById('editSaleId').value = saleId;
+        document.getElementById('editClientName').value = saleData.client_name || '';
+        document.getElementById('editProduct').value = saleData.product_name || '';
+        document.getElementById('editQuantity').value = saleData.quantity || 1;
+        document.getElementById('editAmount').value = saleData.amount || 0;
+        document.getElementById('editStatus').value = saleData.status || 'Pendiente';
+        
+        const modal = new bootstrap.Modal(document.getElementById('editSaleModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('Error loading sale for edit:', error);
+        showAlert('error', 'Error', 'No se pudo cargar la venta para editar');
+    } finally {
+        hideLoading();
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const saveEditedBtn = document.getElementById('saveEditedSaleBtn');
+    if (saveEditedBtn) {
+        saveEditedBtn.onclick = async function() {
+            await saveEditedSale();
+        };
+    }
+});
+
+async function saveEditedSale() {
+    const saleId = document.getElementById('editSaleId').value;
+    const client = document.getElementById('editClientName').value.trim();
+    const product = document.getElementById('editProduct').value.trim();
+    const quantity = parseInt(document.getElementById('editQuantity').value);
+    const amount = parseFloat(document.getElementById('editAmount').value);
+    const status = document.getElementById('editStatus').value;
+    
+    if (!client || !product || !quantity || !amount) {
+        showAlert('warning', 'Datos incompletos', 'Complete todos los campos requeridos');
+        return;
+    }
+    
+    if (quantity <= 0) {
+        showAlert('warning', 'Cantidad inválida', 'La cantidad debe ser mayor a 0');
+        return;
+    }
+    
+    if (amount <= 0) {
+        showAlert('warning', 'Monto inválido', 'El monto debe ser mayor a 0');
+        return;
+    }
+    
+    const data = {
+        client_name: client,
+        product_name: product,
+        quantity: quantity,
+        total_amount: amount,
+        status: status
+    };
+    
+    showLoading();
+    
+    try {
+        const response = await fetch(`/sales/api/update/${saleId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('success', '¡Éxito!', result.message || 'Venta actualizada correctamente');
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editSaleModal'));
+            if (modal) modal.hide();
+            
+            // Recargar después de 1.5 segundos
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('error', 'Error', result.error || 'Error al actualizar la venta');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', 'Error de conexión', 'No se pudo conectar con el servidor');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ================ GENERAR FACTURA ================
+function generateInvoice(saleId) {
+    // Abrir en nueva pestaña para imprimir
+    window.open(`/sales/api/invoice/${saleId}`, '_blank');
+    showAlert('info', 'Factura', 'La factura se abrirá en una nueva ventana para imprimir');
+}
+
+// ================ ELIMINAR VENTA ================
+async function confirmDeleteSale(saleId) {
+    const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción eliminará permanentemente la venta y afectará el inventario si ya estaba completada",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
+    showLoading();
+
+    try {
+        const response = await fetch(`/sales/api/delete/${saleId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Eliminada!',
+                text: result.message || 'Venta eliminada exitosamente',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Recargar después de 2 segundos
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: result.error || 'Error al eliminar la venta'
+            });
+        }
+    } catch (error) {
+        console.error('Error deleting sale:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de conexión',
+            text: 'No se pudo conectar con el servidor'
+        });
+    } finally {
+        hideLoading();
+    }
+}
+</script>
+</body>
+</html>

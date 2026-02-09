@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GanaSys - Iniciar Sesión</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .login-card {
+            border: none;
+            border-radius: 15px;
+        }
+        .demo-credentials {
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        /* Color verde pasto para GanaSys */
+        .ganasys-title {
+            color: #02da26 !important;
+        }
+        /* Color verde pasto para el botón de iniciar sesión */
+        .btn-pasto {
+            background-color: #02da26 !important;
+            border-color: #02da26 !important;
+        }
+        .btn-pasto:hover {
+            background-color: #01e001 !important;
+            border-color: #01e001 !important;
+        }
+    </style>
+</head>
+<body class="login-body">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card login-card shadow">
+                    <div class="card-body text-center">
+                        <h2 class="card-title mb-4 ganasys-title">GanaSys</h2>
+                        <p class="text-muted mb-4">Sistema de Gestión de Finca Mi Querencia</p>
+                        
+                        <!-- Mensajes de error -->
+                        <% if (typeof error !== 'undefined' && error) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= error %>
+                            </div>
+                        <% } %>
+                        
+                        <!-- Mensajes de éxito -->
+                        <% if (typeof success !== 'undefined' && success) { %>
+                            <div class="alert alert-success" role="alert">
+                                <%= success %>
+                            </div>
+                        <% } %>
+                        
+                        <!-- Formulario de Login -->
+                        <form action="/login" method="POST">
+                            <div class="mb-3">
+                                <input type="email" class="form-control" name="email" placeholder="Correo electrónico" required value="<%= email || '' %>">
+                            </div>
+                            <div class="mb-3">
+                                <input type="password" class="form-control" name="password" placeholder="Contraseña" required>
+                            </div>
+                            <div class="mb-3 text-end">
+                                <a href="#forgotPassword" data-bs-toggle="modal" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+                            </div>
+                            <button type="submit" class="btn btn-pasto w-100 mb-3">Iniciar Sesión</button>
+                        </form>
+                        
+                        <!-- Enlace para registrarse -->
+                        <div class="text-center mt-3">
+                            <p class="mb-0">¿No tienes una cuenta? 
+                                <a href="#register" data-bs-toggle="modal" class="text-decoration-none fw-bold">Crear cuenta</a>
+                            </p>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Registro -->
+    <div class="modal fade" id="register" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Nueva Cuenta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/register" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" name="password" minlength="6" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirmar Contraseña</label>
+                            <input type="password" class="form-control" name="confirmPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rol</label>
+                            <select class="form-select" name="role" required>
+                                <option value="operador">Operador</option>
+                                <option value="supervisor">Supervisor</option>
+                                <option value="veterinario">Veterinario</option>
+                            </select>
+                        </div>
+                        <div class="alert alert-info">
+                            <small>La cuenta quedará pendiente hasta que un administrador la active.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear Cuenta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Recuperar Contraseña -->
+    <div class="modal fade" id="forgotPassword" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Recuperar Contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="forgotForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="recoveryEmail" required>
+                        </div>
+                        <div class="alert alert-info">
+                            <small>Ingresa tu email para recibir un enlace de recuperación.</small>
+                        </div>
+                        <div id="message" class="alert d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Enviar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script simple para recuperación -->
+    <script>
+        // Manejar recuperación de contraseña
+        document.getElementById('forgotForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('recoveryEmail').value;
+            const messageDiv = document.getElementById('message');
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            // Mostrar carga
+            button.disabled = true;
+            button.textContent = 'Enviando...';
+            
+            // Enviar solicitud
+            fetch('/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'email=' + encodeURIComponent(email)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Mostrar mensaje
+                messageDiv.className = 'alert ' + (data.success ? 'alert-success' : 'alert-danger');
+                messageDiv.textContent = data.message;
+                messageDiv.classList.remove('d-none');
+                
+                // Limpiar campo si fue exitoso
+                if (data.success) {
+                    document.getElementById('recoveryEmail').value = '';
+                }
+            })
+            .catch(error => {
+                messageDiv.className = 'alert alert-danger';
+                messageDiv.textContent = 'Error del servidor';
+                messageDiv.classList.remove('d-none');
+            })
+            .finally(() => {
+                // Restaurar botón
+                button.disabled = false;
+                button.textContent = originalText;
+            });
+        });
+        
+        // Validación de registro
+        document.querySelector('form[action="/register"]')?.addEventListener('submit', function(e) {
+            const password = this.querySelector('input[name="password"]').value;
+            const confirmPassword = this.querySelector('input[name="confirmPassword"]').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

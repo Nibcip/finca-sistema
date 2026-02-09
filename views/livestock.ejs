@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GanaSys - Ganado y Porcinos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Estilos para corrección de color de texto -->
+    <style>
+        table.table thead th,
+        table.table tbody td,
+        .table th,
+        .table td {
+            color: #000000 !important;
+        }
+        .card,
+        .card-body,
+        .card-header,
+        .table-responsive,
+        .list-group-item {
+            color: #000000 !important;
+        }
+        .badge {
+            color: white !important;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .action-buttons .btn {
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+    </style>
+    <!-- En el head de livestock.ejs -->
+<script>
+    // Verificar si Font Awesome está cargado
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔍 Verificando Font Awesome...');
+        
+        // Intentar detectar Font Awesome
+        const testIcon = document.createElement('i');
+        testIcon.className = 'fas fa-cow';
+        document.body.appendChild(testIcon);
+        
+        setTimeout(() => {
+            const computedStyle = window.getComputedStyle(testIcon);
+            const fontFamily = computedStyle.fontFamily;
+            
+            if (fontFamily.includes('FontAwesome') || fontFamily.includes('"Font Awesome')) {
+                console.log('✅ Font Awesome está cargado correctamente');
+            } else {
+                console.log('❌ Font Awesome NO está cargado. Fuente detectada:', fontFamily);
+                
+                // Forzar recarga de Font Awesome
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+                document.head.appendChild(link);
+                console.log('🔄 Font Awesome recargado forzosamente');
+            }
+            
+            document.body.removeChild(testIcon);
+        }, 100);
+    });
+</script>
+</head>
+<body>
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cow"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">GanaSys</div>
+        </a>
+        <hr class="sidebar-divider my-0">
+    <ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Inicio</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/users">
+            <i class="fas fa-fw fa-users"></i>
+            <span>Usuarios</span>
+        </a>
+    </li>
+    <% } %>
+    <li class="nav-item">
+        <a class="nav-link" href="/livestock">
+            <i class="fas fa-fw fa-cow"></i>
+            <span>Ganado y Porcinos</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/reproduction">
+            <i class="fas fa-fw fa-heart"></i>
+            <span>Reproducción</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/health">
+            <i class="fas fa-fw fa-syringe"></i>
+            <span>Vacunación y Sanidad</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor') { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/sales">
+            <i class="fas fa-fw fa-dollar-sign"></i>
+            <span>Ventas</span>
+        </a>
+    </li>
+    <% } %>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <!-- INVENTARIO DEBE IR AQUÍ (después de Ventas) -->
+    <li class="nav-item">
+        <a class="nav-link" href="/inventory">
+            <i class="fas fa-fw fa-warehouse"></i>
+            <span>Inventario</span>
+        </a>
+    </li>
+    <% } %>
+    <!-- FIN DEL INVENTARIO -->
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">
+            <i class="fas fa-fw fa-sign-out-alt"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </li>
+</ul>
+    </div>
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                <button id="sidebarToggle" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
+            </nav>
+
+            <div class="container-fluid">
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">Gestión de Ganado y Porcinos</h1>
+                    <div>
+                        <button class="btn btn-primary btn-sm mr-2" data-bs-toggle="modal" data-bs-target="#newAnimalModal">
+                            <i class="fas fa-plus fa-sm"></i> Nuevo Animal
+                        </button>
+                        <button class="btn btn-success btn-sm" id="exportBtn">
+                            <i class="fas fa-download fa-sm"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alertas -->
+                <% if (locals.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= locals.error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+
+                <% if (locals.success) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= locals.success %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total de Ganado
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= cattle.length %> animales
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-cow fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Total de Porcinos
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= pigs.length %> animales
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                     
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="cattle-tab" data-bs-toggle="tab" data-bs-target="#cattle" type="button" role="tab">
+                            <i class="fas fa-cow me-2"></i>Ganado (<%= cattle.length %>)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pigs-tab" data-bs-toggle="tab" data-bs-target="#pigs" type="button" role="tab">
+Porcinos (<%= pigs.length %>)
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="myTabContent">
+                    <!-- Tab de Ganado -->
+                    <div class="tab-pane fade show active" id="cattle" role="tabpanel">
+                        <div class="card shadow mb-4 mt-3">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>ID / Nombre</th>
+                                                <th>Raza</th>
+                                                <th>Edad</th>
+                                                <th>Peso</th>
+                                                <th>Estado</th>
+                                                <th>Última Edición</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% cattle.forEach(animal => { %>
+                                            <tr>
+                                                <td>
+                                                    <div class="font-weight-bold text-primary"><%= animal.id %></div>
+                                                    <div class="text-muted small"><%= animal.name %></div>
+                                                </td>
+                                                <td><%= animal.breed %></td>
+                                                <td><%= animal.age %></td>
+                                                <td><%= animal.weight %> kg</td>
+                                                <td>
+                                                    <span class="badge bg-<%= 
+                                                        animal.status === 'activo' ? 'success' :
+                                                        animal.status === 'enfermo' ? 'warning' :
+                                                        animal.status === 'vendido' ? 'info' : 'danger'
+                                                    %>">
+                                                        <%= animal.status %>
+                                                    </span>
+                                                </td>
+                                                <td><%= animal.last_update %></td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn btn-sm btn-outline-primary view-details" 
+                                                                data-type="cattle" 
+                                                                data-id="<%= animal.id %>">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-warning edit-animal" 
+                                                                data-type="cattle" 
+                                                                data-id="<%= animal.id %>">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger delete-animal" 
+                                                                data-type="cattle" 
+                                                                data-id="<%= animal.id %>"
+                                                                data-name="<%= animal.name %>">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab de Porcinos -->
+                    <div class="tab-pane fade" id="pigs" role="tabpanel">
+                        <div class="card shadow mb-4 mt-3">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>ID / Nombre</th>
+                                                <th>Raza</th>
+                                                <th>Edad</th>
+                                                <th>Peso</th>
+                                                <th>Estado</th>
+                                                <th>Última Edición</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% pigs.forEach(animal => { %>
+                                            <tr>
+                                                <td>
+                                                    <div class="font-weight-bold text-primary"><%= animal.id %></div>
+                                                    <div class="text-muted small"><%= animal.name %></div>
+                                                </td>
+                                                <td><%= animal.breed %></td>
+                                                <td><%= animal.age %></td>
+                                                <td><%= animal.weight %> kg</td>
+                                                <td>
+                                                    <span class="badge bg-<%= 
+                                                        animal.status === 'activo' ? 'success' :
+                                                        animal.status === 'enfermo' ? 'warning' :
+                                                        animal.status === 'vendido' ? 'info' : 'danger'
+                                                    %>">
+                                                        <%= animal.status %>
+                                                    </span>
+                                                </td>
+                                                <td><%= animal.last_update %></td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn btn-sm btn-outline-primary view-details" 
+                                                                data-type="pig" 
+                                                                data-id="<%= animal.id %>">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-warning edit-animal" 
+                                                                data-type="pig" 
+                                                                data-id="<%= animal.id %>">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger delete-animal" 
+                                                                data-type="pig" 
+                                                                data-id="<%= animal.id %>"
+                                                                data-name="<%= animal.name %>">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Animal -->
+    <div class="modal fade" id="newAnimalModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Animal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="newAnimalForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Animal</label>
+                            <select class="form-control" name="type" id="animal_type" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="cattle">Ganado Bovino</option>
+                                <option value="pig">Porcino</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ID del Animal</label>
+                            <input type="number" class="form-control" name="id" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Raza</label>
+                            <input type="text" class="form-control" name="breed" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Edad</label>
+                                <input type="text" class="form-control" name="age" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Peso (kg)</label>
+                                <input type="number" step="0.01" class="form-control" name="weight" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Estado</label>
+                            <select class="form-control" name="status" required>
+                                <option value="activo">Activo</option>
+                                <option value="enfermo">Enfermo</option>
+                                <option value="vendido">Vendido</option>
+                                <option value="muerto">Muerto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Animal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Animal -->
+    <div class="modal fade" id="editAnimalModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Animal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editAnimalForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_animal_type" name="type">
+                        <input type="hidden" id="edit_animal_id" name="id">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="edit_animal_name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Raza</label>
+                            <input type="text" class="form-control" id="edit_animal_breed" name="breed" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Edad</label>
+                                <input type="text" class="form-control" id="edit_animal_age" name="age" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Peso (kg)</label>
+                                <input type="number" step="0.01" class="form-control" id="edit_animal_weight" name="weight" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Estado</label>
+                            <select class="form-control" id="edit_animal_status" name="status" required>
+                                <option value="activo">Activo</option>
+                                <option value="enfermo">Enfermo</option>
+                                <option value="vendido">Vendido</option>
+                                <option value="muerto">Muerto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Actualizar Animal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Detalles -->
+    <div class="modal fade" id="viewDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalles del Animal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="animalDetailsContent">
+                    <!-- Los detalles se cargarán aquí dinámicamente -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar Animal -->
+    <div class="modal fade" id="deleteAnimalModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Eliminar Animal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar el animal <strong id="deleteAnimalName"></strong>?</p>
+                    <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+                    <input type="hidden" id="delete_animal_type">
+                    <input type="hidden" id="delete_animal_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Exportar -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Exportar Datos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Exportación</label>
+                        <select class="form-control" id="exportType">
+                            <option value="cattle">Solo Ganado</option>
+                            <option value="pigs">Solo Porcinos</option>
+                            <option value="all">Todos los Animales</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Formato</label>
+                        <select class="form-control" id="exportFormat">
+                            <option value="csv">CSV</option>
+                            <option value="excel">Excel</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmExport">Exportar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Nuevo Animal
+        $('#newAnimalForm').submit(function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: '/livestock/add-animal',
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Animal agregado correctamente');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Error al agregar el animal');
+                }
+            });
+        });
+
+        // Ver Detalles
+        $(document).on('click', '.view-details', function() {
+            const type = $(this).data('type');
+            const id = $(this).data('id');
+            
+            $.ajax({
+                url: '/livestock/animal/' + type + '/' + id,
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const animal = response.animal;
+                        let detailsHtml = `
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Información Básica</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>ID:</strong></td>
+                                            <td>${animal.id}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Nombre:</strong></td>
+                                            <td>${animal.name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Raza:</strong></td>
+                                            <td>${animal.breed}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Tipo:</strong></td>
+                                            <td>${type === 'cattle' ? 'Ganado' : 'Porcino'}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Información de Salud</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Edad</strong></td>
+                                            <td>${animal.age}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Peso:</strong></td>
+                                            <td>${animal.weight} kg</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Estado:</strong></td>
+                                            <td><span class="badge bg-${getStatusClass(animal.status)}">${animal.status}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Última Actualización:</strong></td>
+                                            <td>${animal.last_update}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                            </div>
+                        `;
+                        
+                        $('#animalDetailsContent').html(detailsHtml);
+                        $('#viewDetailsModal').modal('show');
+                    }
+                },
+                error: function() {
+                    alert('Error al cargar los detalles del animal');
+                }
+            });
+        });
+
+        // Editar Animal
+        $(document).on('click', '.edit-animal', function() {
+            const type = $(this).data('type');
+            const id = $(this).data('id');
+            
+            $.ajax({
+                url: '/livestock/animal/' + type + '/' + id,
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        const animal = response.animal;
+                        
+                        // Llenar el formulario de edición
+                        $('#edit_animal_type').val(type);
+                        $('#edit_animal_id').val(animal.id);
+                        $('#edit_animal_name').val(animal.name);
+                        $('#edit_animal_breed').val(animal.breed);
+                        $('#edit_animal_age').val(animal.age);
+                        $('#edit_animal_weight').val(animal.weight);
+                        $('#edit_animal_status').val(animal.status);
+                        
+                        $('#editAnimalModal').modal('show');
+                    }
+                },
+                error: function() {
+                    alert('Error al cargar los datos del animal para editar');
+                }
+            });
+        });
+
+        // Enviar formulario de edición
+        $('#editAnimalForm').submit(function(e) {
+            e.preventDefault();
+            
+            const type = $('#edit_animal_type').val();
+            const id = $('#edit_animal_id').val();
+            
+            $.ajax({
+                url: '/livestock/update-animal/' + type + '/' + id,
+                method: 'PUT',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Animal actualizado correctamente');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Error al actualizar el animal');
+                }
+            });
+        });
+
+        // Eliminar Animal
+        $(document).on('click', '.delete-animal', function() {
+            const type = $(this).data('type');
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            
+            $('#delete_animal_type').val(type);
+            $('#delete_animal_id').val(id);
+            $('#deleteAnimalName').text(name + ' (ID: ' + id + ')');
+            
+            $('#deleteAnimalModal').modal('show');
+        });
+
+        // Confirmar eliminación
+        $('#confirmDelete').click(function() {
+            const type = $('#delete_animal_type').val();
+            const id = $('#delete_animal_id').val();
+            
+            $.ajax({
+                url: '/livestock/delete-animal/' + type + '/' + id,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        alert('Animal eliminado correctamente');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Error al eliminar el animal');
+                }
+            });
+        });
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'activo': return 'success';
+                case 'enfermo': return 'warning';
+                case 'vendido': return 'info';
+                case 'muerto': return 'danger';
+                default: return 'secondary';
+            }
+        }
+
+        // Exportar
+        $('#exportBtn').click(function() {
+            $('#exportModal').modal('show');
+        });
+
+        $('#confirmExport').click(function() {
+            const exportType = $('#exportType').val();
+            const exportFormat = $('#exportFormat').val();
+            
+            $.ajax({
+    url: '/livestock/export',
+    method: 'POST',
+    data: {
+        type: exportType,
+        format: exportFormat
+    },
+    xhrFields: exportFormat === 'pdf' ? { responseType: 'blob' } : {}, 
+    success: function(response, status, xhr) {
+        if (exportFormat === 'csv') {
+            downloadCSV(response.data, response.filename);
+        } else if (exportFormat === 'excel') {
+            downloadExcel(response.data, response.filename);
+        } else if (exportFormat === 'pdf') {
+            const blob = new Blob([response], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte_${Date.now()}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        }
+        $('#exportModal').modal('hide');
+    },
+    error: function() {
+        alert('Error al exportar los datos');
+    }
+});
+        });
+
+        function downloadCSV(data, filename) {
+            const csv = convertToCSV(data);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, filename);
+        }
+
+        function downloadExcel(data, filename) {
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Animales");
+            XLSX.writeFile(wb, filename);
+        }
+
+        function convertToCSV(data) {
+            const headers = Object.keys(data[0]);
+            const csv = [
+                headers.join(','),
+                ...data.map(row => headers.map(header => JSON.stringify(row[header])).join(','))
+            ].join('\n');
+            return csv;
+        }
+    });
+    </script>
+    <script>
+    // Reparador de iconos del menú
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔧 Reparando iconos del menú...');
+        
+        // 1. Reparar icono de Ganado
+        const ganadoLink = document.querySelector('a[href="/livestock"]');
+        if (ganadoLink) {
+            const icon = ganadoLink.querySelector('i');
+            
+            if (!icon) {
+                // Si no hay icono, crearlo
+                const newIcon = document.createElement('i');
+                newIcon.className = 'fas fa-fw fa-cow';
+                ganadoLink.insertBefore(newIcon, ganadoLink.querySelector('span'));
+                console.log('✅ Icono de ganado creado');
+            } else if (!icon.className.includes('fa-cow')) {
+                // Si hay icono pero es incorrecto
+                icon.className = 'fas fa-fw fa-cow';
+                console.log('✅ Icono de ganado corregido');
+            } else if (icon.offsetParent === null) {
+                // Si el icono está oculto
+                icon.style.display = 'inline-block';
+                icon.style.visibility = 'visible';
+                icon.style.opacity = '1';
+                console.log('✅ Icono de ganado hecho visible');
+            } else {
+                console.log('✅ Icono de ganado ya está correcto');
+            }
+        }
+        
+        // 2. Verificar todos los iconos del menú
+        const menuIcons = document.querySelectorAll('.sidebar .nav-link i');
+        console.log(`Iconos encontrados en el menú: ${menuIcons.length}`);
+        
+        menuIcons.forEach((icon, index) => {
+            const computedStyle = window.getComputedStyle(icon);
+            console.log(`${index + 1}. ${icon.className} - Visible: ${computedStyle.display !== 'none'}`);
+            
+            // Forzar visibilidad si está oculto
+            if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+                icon.style.display = 'inline-block';
+                icon.style.visibility = 'visible';
+            }
+        });
+        
+        // 3. Verificar Font Awesome globalmente
+        const styleSheets = Array.from(document.styleSheets);
+        const hasFontAwesome = styleSheets.some(sheet => {
+            try {
+                return sheet.href && sheet.href.includes('font-awesome');
+            } catch (e) {
+                return false;
+            }
+        });
+        
+        if (!hasFontAwesome) {
+            console.warn('⚠️ Font Awesome no detectado en hojas de estilo');
+            
+            // Cargar Font Awesome dinámicamente
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+            link.onload = () => console.log('✅ Font Awesome cargado dinámicamente');
+            document.head.appendChild(link);
+        }
+    });
+</script>
+</body>
+</html>

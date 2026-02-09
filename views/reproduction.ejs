@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GanaSys - Reproducción</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root {
+            --apple-green: #32CD32;
+            --apple-green-dark: #228B22;
+            --apple-green-light: #90EE90;
+            --apple-green-very-light: #F0FFF0;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            background-color: var(--apple-green-dark) !important;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid var(--apple-green);
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .card-header {
+            background-color: var(--apple-green-very-light) !important;
+            border-bottom: 2px solid var(--apple-green-light) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--apple-green-dark) !important;
+            border-color: var(--apple-green-dark) !important;
+        }
+
+        .btn-success {
+            background-color: var(--apple-green) !important;
+            border-color: var(--apple-green) !important;
+        }
+
+        .btn-warning {
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+        }
+
+        .btn-danger {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+
+        .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .product-card {
+            transition: all 0.3s ease;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--apple-green);
+        }
+
+        .product-card .btn-sell {
+            background-color: var(--apple-green);
+            border-color: var(--apple-green);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .product-card .btn-sell:hover {
+            background-color: var(--apple-green-dark);
+            border-color: var(--apple-green-dark);
+            transform: translateY(-2px);
+        }
+
+        .modal-header {
+            background-color: var(--apple-green-dark);
+            color: white;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .badge-success {
+            background-color: var(--apple-green) !important;
+        }
+
+        .border-left-primary {
+            border-left: 4px solid #4e73df !important;
+        }
+
+        .border-left-success {
+            border-left: 4px solid var(--apple-green) !important;
+        }
+
+        .border-left-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
+
+        .border-left-info {
+            border-left: 4px solid #36b9cc !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--apple-green-light);
+            box-shadow: 0 0 0 0.2rem rgba(50, 205, 50, 0.25);
+        }
+
+        .stock-indicator {
+            font-size: 0.85rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .stock-high {
+            background-color: var(--apple-green-very-light);
+            color: var(--apple-green-dark);
+            border: 1px solid var(--apple-green-light);
+        }
+
+        .stock-medium {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .stock-low {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cow"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">GanaSys</div>
+        </a>
+        <hr class="sidebar-divider my-0">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/dashboard">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Inicio</span>
+                </a>
+            </li>
+            <% if (user.role=='admin' || user.role=='supervisor' || user.role=="operador" ) { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/users">
+                        <i class="fas fa-fw fa-users"></i>
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+                <% } %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/livestock">
+                            <i class="fas fa-fw fa-cow"></i>
+                            <span>Ganado y Porcinos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reproduction">
+                            <i class="fas fa-fw fa-heart"></i>
+                            <span>Reproducción</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/health">
+                            <i class="fas fa-fw fa-syringe"></i>
+                            <span>Vacunación y Sanidad</span>
+                        </a>
+                    </li>
+                    <% if (user.role=='admin' || user.role=='supervisor' ) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/sales">
+                                <i class="fas fa-fw fa-dollar-sign"></i>
+                                <span>Ventas</span>
+                            </a>
+                        </li>
+                        <% } %>
+                            <% if (user.role=='admin' || user.role=='supervisor' || user.role=="operador" ) { %>
+                                <!-- INVENTARIO DEBE IR AQUÍ (después de Ventas) -->
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/inventory">
+                                        <i class="fas fa-fw fa-warehouse"></i>
+                                        <span>Inventario</span>
+                                    </a>
+                                </li>
+                                <% } %>
+                                    <!-- FIN DEL INVENTARIO -->
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="/logout">
+                                            <i class="fas fa-fw fa-sign-out-alt"></i>
+                                            <span>Cerrar Sesión</span>
+                                        </a>
+                                    </li>
+        </ul>
+    </div>
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                <button id="sidebarToggle" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item dropdown no-arrow">
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                            aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="/logout">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="container-fluid">
+                <!-- Mensajes de éxito/error -->
+                <% if (success) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <%= success %>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+
+                        <% if (error) { %>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <%= error %>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            <% } %>
+
+                                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                                    <h1 class="h3 mb-0 text-gray-800">
+                                        <i class="fas fa-heart me-2" style="color: var(--apple-green-dark);"></i>
+                                        Gestión de Reproducción
+                                    </h1>
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#newReproductionModal">
+                                        <i class="fas fa-plus fa-sm me-1"></i> Nueva Reproducción
+                                    </button>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-xl-3 col-md-6 mb-4">
+                                        <div class="card border-left-primary shadow h-100 py-2">
+                                            <div class="card-body">
+                                                <div class="row no-gutters align-items-center">
+                                                    <div class="col mr-2">
+                                                        <div
+                                                            class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                            Gestaciones Activas
+                                                        </div>
+                                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                            <%= stats.gestaciones_activas %>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <i class="fas fa-heart fa-2x text-gray-300"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xl-3 col-md-6 mb-4">
+                                        <div class="card border-left-success shadow h-100 py-2">
+                                            <div class="card-body">
+                                                <div class="row no-gutters align-items-center">
+                                                    <div class="col mr-2">
+                                                        <div
+                                                            class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                            Partos Exitosos
+                                                        </div>
+                                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                            <%= stats.partos_exitosos %>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <i class="fas fa-baby fa-2x text-gray-300"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xl-3 col-md-6 mb-4">
+                                        <div class="card border-left-warning shadow h-100 py-2">
+                                            <div class="card-body">
+                                                <div class="row no-gutters align-items-center">
+                                                    <div class="col mr-2">
+                                                        <div
+                                                            class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                            Próximos Partos
+                                                        </div>
+                                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                            <%= stats.gestaciones_activas %>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xl-3 col-md-6 mb-4">
+                                        <div class="card border-left-info shadow h-100 py-2">
+                                            <div class="card-body">
+                                                <div class="row no-gutters align-items-center">
+                                                    <div class="col mr-2">
+                                                        <div
+                                                            class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                            Total Año
+                                                        </div>
+                                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                            <%= stats.reproducciones_anio %>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="card shadow mb-4">
+                                            <div
+                                                class="card-header py-3 d-flex justify-content-between align-items-center">
+                                                <h6 class="m-0 font-weight-bold text-primary">Registros de Reproducción
+                                                </h6>
+                                                <div>
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                        onclick="refreshTable()" title="Actualizar">
+                                                        <i class="fas fa-sync-alt"></i> Actualizar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-hover" width="100%"
+                                                        cellspacing="0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Animal</th>
+                                                                <th>Tipo</th>
+                                                                <th>Fecha Cubrición</th>
+                                                                <th>Fecha Parto Estimada</th>
+                                                                <th>Estado</th>
+                                                                <th>Acciones</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <% if (reproducciones && reproducciones.length> 0) { %>
+                                                                <% reproducciones.forEach(function(reproduccion) { %>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="font-weight-bold">
+                                                                                <%= reproduccion.animal_name %>
+                                                                            </div>
+                                                                            <div class="text-muted small">
+                                                                                <%= reproduccion.breed %> (ID: <%=
+                                                                                        reproduccion.animal_id %>)
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span
+                                                                                class="badge bg-<%= reproduccion.tipo === 'monta_natural' ? 'info' : 'warning' %>">
+                                                                                <i
+                                                                                    class="fas fa-<%= reproduccion.tipo === 'monta_natural' ? 'heart' : 'syringe' %> me-1"></i>
+                                                                                <%= reproduccion.tipo==='monta_natural'
+                                                                                    ? 'Monta Natural' : 'Inseminación'
+                                                                                    %>
+                                                                            </span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= reproduccion.fecha_cubricion %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= reproduccion.fecha_parto_estimada %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span class="badge bg-<%= 
+                                                            reproduccion.estado === 'gestacion' ? 'warning' :
+                                                            reproduccion.estado === 'parto_exitoso' ? 'success' :
+                                                            reproduccion.estado === 'fallido' ? 'danger' :
+                                                            reproduccion.estado === 'aborto' ? 'secondary' : 'info'
+                                                        %>">
+                                                                                <i class="fas fa-<%= 
+                                                                reproduccion.estado === 'gestacion' ? 'heartbeat' :
+                                                                reproduccion.estado === 'parto_exitoso' ? 'check' :
+                                                                reproduccion.estado === 'fallido' ? 'times' :
+                                                                reproduccion.estado === 'aborto' ? 'exclamation-triangle' : 'info-circle'
+                                                            %> me-1"></i>
+                                                                                <%= reproduccion.estado==='gestacion'
+                                                                                    ? 'Gestación' :
+                                                                                    reproduccion.estado==='parto_exitoso'
+                                                                                    ? 'Parto Exitoso' :
+                                                                                    reproduccion.estado==='fallido'
+                                                                                    ? 'Fallido' :
+                                                                                    reproduccion.estado==='aborto'
+                                                                                    ? 'Aborto' : 'Otro' %>
+                                                                            </span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <div class="btn-group btn-group-sm"
+                                                                                role="group">
+                                                                                <button
+                                                                                    class="btn btn-outline-primary view-details"
+                                                                                    data-id="<%= reproduccion.id %>"
+                                                                                    title="Ver detalles">
+                                                                                    <i class="fas fa-eye"></i>
+                                                                                </button>
+                                                                                <% if (reproduccion.estado === 'gestacion') { %>
+                                                                                    <button
+                                                                                        class="btn btn-outline-success register-birth"
+                                                                                        data-id="<%= reproduccion.id %>"
+                                                                                        title="Registrar parto">
+                                                                                        <i class="fas fa-baby"></i>
+                                                                                    </button>
+                                                                                    <% } %>
+                                                                                        <button
+                                                                                            class="btn btn-outline-info edit-reproduction"
+                                                                                            data-id="<%= reproduccion.id %>"
+                                                                                            title="Editar">
+                                                                                            <i class="fas fa-edit"></i>
+                                                                                        </button>
+                                                                                        <button
+                                                                                            class="btn btn-outline-danger delete-reproduction"
+                                                                                            data-id="<%= reproduccion.id %>"
+                                                                                            title="Eliminar">
+                                                                                            <i class="fas fa-trash"></i>
+                                                                                        </button>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <% }); %>
+                                                                        <% } else { %>
+                                                                            <tr>
+                                                                                <td colspan="6"
+                                                                                    class="text-center text-muted py-4">
+                                                                                    <i
+                                                                                        class="fas fa-heart fa-2x mb-3"></i>
+                                                                                    <h5 class="mb-3">No hay
+                                                                                        reproducciones registradas</h5>
+                                                                                    <button
+                                                                                        class="btn btn-primary btn-lg"
+                                                                                        data-bs-toggle="modal"
+                                                                                        data-bs-target="#newReproductionModal">
+                                                                                        <i class="fas fa-plus me-1"></i>
+                                                                                        Crear primera reproducción
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <% } %>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+            </div>
+        </div>
+
+        <footer class="sticky-footer bg-white mt-4">
+            <div class="container my-auto">
+
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Nueva Reproducción -->
+    <div class="modal fade" id="newReproductionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Nueva Reproducción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="newReproductionForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Animal *</label>
+                            <select class="form-control" name="animal_type" id="animal_type" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="cattle">Ganado Bovino</option>
+                                <option value="pig">Porcino</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Animal *</label>
+                            <select class="form-control" name="animal_id" id="animal_id" required>
+                                <option value="">Primero seleccione el tipo</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Reproducción *</label>
+                            <select class="form-control" name="tipo" required>
+                                <option value="monta_natural">Monta Natural</option>
+                                <option value="inseminacion_artificial">Inseminación Artificial</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Toro/Verraco</label>
+                            <input type="text" class="form-control" name="toro_verracion"
+                                placeholder="Nombre del toro o verraco">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Cubrición *</label>
+                            <input type="date" class="form-control" name="fecha_cubricion" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" name="observaciones" rows="2"
+                                placeholder="Información adicional..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Parto -->
+    <div class="modal fade" id="registerBirthModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-baby me-2"></i>Registrar Parto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="registerBirthForm">
+                    <input type="hidden" name="reproduccion_id" id="birth_reproduccion_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Fecha Real de Parto *</label>
+                            <input type="date" class="form-control" name="fecha_parto_real" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Crías Vivas *</label>
+                                <input type="number" class="form-control" name="crias_vivas" min="0" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Crías Muertas</label>
+                                <input type="number" class="form-control" name="crias_muertas" min="0" value="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Peso Promedio (kg)</label>
+                            <input type="number" class="form-control" name="peso_promedio" step="0.01" min="0"
+                                placeholder="Peso promedio por cría">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones/Complicaciones</label>
+                            <textarea class="form-control" name="complicaciones" rows="2"
+                                placeholder="Complicaciones o información adicional..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>Registrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Reproducción -->
+    <div class="modal fade" id="editReproductionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Reproducción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editReproductionForm">
+                    <input type="hidden" name="id" id="edit_reproduccion_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Reproducción *</label>
+                            <select class="form-control" name="tipo" id="edit_tipo" required>
+                                <option value="monta_natural">Monta Natural</option>
+                                <option value="inseminacion_artificial">Inseminación Artificial</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Toro/Verraco</label>
+                            <input type="text" class="form-control" name="toro_verracion" id="edit_toro_verracion"
+                                placeholder="Nombre del toro o verraco">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Cubrición *</label>
+                            <input type="date" class="form-control" name="fecha_cubricion" id="edit_fecha_cubricion"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" name="observaciones" id="edit_observaciones" rows="2"
+                                placeholder="Información adicional..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Detalles -->
+    <div class="modal fade" id="viewDetailsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Detalles de Reproducción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="reproductionDetails"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="spinner-overlay" id="loadingOverlay" style="display: none;">
+        <div class="text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Procesando...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            console.log('Módulo de Reproducción cargado');
+
+            // Configurar fecha actual
+            const today = new Date().toISOString().split('T')[0];
+            $('input[name="fecha_cubricion"]').val(today);
+            $('input[name="fecha_parto_real"]').val(today);
+
+            // ================ UTILIDADES ================
+            const showLoading = () => {
+                $('#loadingOverlay').css('display', 'flex');
+            };
+
+            const hideLoading = () => {
+                $('#loadingOverlay').hide();
+            };
+
+            const showAlert = (icon, title, text) => {
+                return Swal.fire({
+                    icon: icon,
+                    title: title,
+                    text: text,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            };
+
+            const showSuccessAlert = (message) => {
+                return Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: message,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            };
+
+            const showErrorAlert = (message) => {
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: message,
+                    timer: 3000,
+                    showConfirmButton: true
+                });
+            };
+
+            // ================ CARGAR ANIMALES ================
+            $('#animal_type').change(function () {
+                const type = $(this).val();
+                if (type) {
+                    showLoading();
+                    $.ajax({
+                        url: '/reproduction/api/animals/' + type,
+                        method: 'GET',
+                        success: function (animals) {
+                            $('#animal_id').empty().append('<option value="">Seleccionar animal</option>');
+                            animals.forEach(function (animal) {
+                                $('#animal_id').append(`<option value="${animal.id}">${animal.name} (${animal.breed}) - ID: ${animal.id}</option>`);
+                            });
+                            if (animals.length === 0) {
+                                showAlert('info', 'Sin animales', 'No hay animales disponibles de este tipo');
+                            }
+                        },
+                        error: function (xhr) {
+                            console.error('Error cargando animales:', xhr.responseText);
+                            showErrorAlert('Error al cargar animales: ' + (xhr.responseJSON?.error || 'Error desconocido'));
+                        },
+                        complete: function () {
+                            hideLoading();
+                        }
+                    });
+                }
+            });
+
+            // ================ NUEVA REPRODUCCIÓN ================
+            $('#newReproductionForm').submit(async function (e) {
+                e.preventDefault();
+
+                const animalType = $('#animal_type').val();
+                const animalId = $('#animal_id').val();
+                const fechaCubricion = $('input[name="fecha_cubricion"]').val();
+
+                if (!animalType) {
+                    showErrorAlert('Seleccione el tipo de animal');
+                    return;
+                }
+
+                if (!animalId) {
+                    showErrorAlert('Seleccione un animal');
+                    return;
+                }
+
+                if (!fechaCubricion) {
+                    showErrorAlert('Seleccione la fecha de cubrición');
+                    return;
+                }
+
+                showLoading();
+
+                try {
+                    const response = await fetch('/reproduction/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: $(this).serialize()
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showSuccessAlert(result.message || 'Reproducción registrada correctamente');
+
+                        // Cerrar modal y limpiar formulario
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('newReproductionModal'));
+                        if (modal) modal.hide();
+                        $('#newReproductionForm')[0].reset();
+
+                        // Recargar después de 1.5 segundos
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showErrorAlert(result.message || 'Error al registrar la reproducción');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showErrorAlert('Error de conexión: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // ================ REGISTRAR PARTO (CORREGIDO) ================
+            $('body').on('click', '.register-birth', function () {
+                const id = $(this).data('id');
+                $('#birth_reproduccion_id').val(id);
+
+                // Resetear y configurar fecha actual
+                $('#registerBirthForm')[0].reset();
+                $('input[name="fecha_parto_real"]').val(today);
+                $('input[name="crias_vivas"]').val(1);
+                $('input[name="crias_muertas"]').val(0);
+
+                const modal = new bootstrap.Modal(document.getElementById('registerBirthModal'));
+                modal.show();
+            });
+
+            $('#registerBirthForm').submit(async function (e) {
+                e.preventDefault();
+
+                const fechaPartoReal = $('input[name="fecha_parto_real"]').val();
+                const criasVivas = $('input[name="crias_vivas"]').val();
+                const criasMuertas = $('input[name="crias_muertas"]').val() || 0;
+                const pesoPromedio = $('input[name="peso_promedio"]').val();
+                const complicaciones = $('textarea[name="complicaciones"]').val();
+
+                console.log('Validando parto:', { fechaPartoReal, criasVivas, criasMuertas, pesoPromedio });
+
+                if (!fechaPartoReal) {
+                    showErrorAlert('Seleccione la fecha real de parto');
+                    return;
+                }
+
+                if (criasVivas === '' || parseInt(criasVivas) < 0) {
+                    showErrorAlert('Ingrese un número válido de crías vivas (0 o más)');
+                    return;
+                }
+
+                if (parseInt(criasMuertas) < 0) {
+                    showErrorAlert('El número de crías muertas no puede ser negativo');
+                    return;
+                }
+
+                showLoading();
+
+                try {
+                    const formData = new FormData();
+                    formData.append('reproduccion_id', $('#birth_reproduccion_id').val());
+                    formData.append('fecha_parto_real', fechaPartoReal);
+                    formData.append('crias_vivas', criasVivas);
+                    formData.append('crias_muertas', criasMuertas);
+                    if (pesoPromedio) formData.append('peso_promedio', pesoPromedio);
+                    if (complicaciones) formData.append('complicaciones', complicaciones);
+
+                    const response = await fetch('/reproduction/registrar-parto', {
+                        method: 'POST',
+                        body: new URLSearchParams(formData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showSuccessAlert(result.message || 'Parto registrado correctamente');
+
+                        // Cerrar modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('registerBirthModal'));
+                        if (modal) modal.hide();
+
+                        // Recargar después de 1.5 segundos
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showErrorAlert(result.message || 'Error al registrar el parto');
+                    }
+                } catch (error) {
+                    console.error('Error al registrar parto:', error);
+                    showErrorAlert('Error de conexión: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // ================ EDITAR REPRODUCCIÓN ================
+            $('body').on('click', '.edit-reproduction', async function () {
+                const id = $(this).data('id');
+                showLoading();
+
+                try {
+                    const response = await fetch(`/reproduction/detail/${id}`, {
+                        method: 'GET'
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const data = result.data;
+
+                        // Llenar formulario de edición
+                        $('#edit_reproduccion_id').val(data.id);
+                        $('#edit_tipo').val(data.tipo);
+                        $('#edit_toro_verracion').val(data.toro_verracion || '');
+                        $('#edit_fecha_cubricion').val(data.fecha_cubricion);
+                        $('#edit_observaciones').val(data.observaciones || '');
+
+                        // Mostrar modal
+                        const modal = new bootstrap.Modal(document.getElementById('editReproductionModal'));
+                        modal.show();
+                    } else {
+                        showErrorAlert(result.message || 'Error al cargar datos para editar');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showErrorAlert('Error de conexión: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // Enviar formulario de edición
+            $('#editReproductionForm').submit(async function (e) {
+                e.preventDefault();
+
+                const id = $('#edit_reproduccion_id').val();
+                const fechaCubricion = $('#edit_fecha_cubricion').val();
+
+                if (!fechaCubricion) {
+                    showErrorAlert('Seleccione la fecha de cubrición');
+                    return;
+                }
+
+                showLoading();
+
+                try {
+                    const response = await fetch(`/reproduction/edit/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: $(this).serialize()
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showSuccessAlert(result.message || 'Reproducción actualizada correctamente');
+
+                        // Cerrar modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('editReproductionModal'));
+                        if (modal) modal.hide();
+
+                        // Recargar después de 1.5 segundos
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showErrorAlert(result.message || 'Error al actualizar la reproducción');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showErrorAlert('Error de conexión: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // ================ VER DETALLES ================
+            $('body').on('click', '.view-details', async function () {
+                const id = $(this).data('id');
+                showLoading();
+
+                try {
+                    const response = await fetch(`/reproduction/detail/${id}`, {
+                        method: 'GET'
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const data = result.data;
+                        const detailsHtml = `
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-cow me-2"></i>Información del Animal</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Nombre:</strong> ${data.animal_name}</p>
+                                        <p class="mb-2"><strong>Raza:</strong> ${data.breed}</p>
+                                        <p class="mb-0"><strong>ID Animal:</strong> ${data.animal_id}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-heart me-2"></i>Información de Reproducción</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Tipo:</strong> ${data.tipo === 'monta_natural' ? 'Monta Natural' : 'Inseminación Artificial'}</p>
+                                        <p class="mb-2"><strong>Toro/Verraco:</strong> ${data.toro_verracion || 'No especificado'}</p>
+                                        <p class="mb-2"><strong>Estado:</strong> ${data.estado === 'gestacion' ? 'Gestación' : data.estado === 'parto_exitoso' ? 'Parto Exitoso' : data.estado}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-calendar me-2"></i>Fechas</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Fecha Cubrición:</strong> ${data.fecha_cubricion}</p>
+                                        <p class="mb-2"><strong>Fecha Parto Estimada:</strong> ${data.fecha_parto_estimada || 'No definida'}</p>
+                                        ${data.fecha_parto_real ? `<p class="mb-0"><strong>Fecha Parto Real:</strong> ${data.fecha_parto_real}</p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            ${data.crias_vivas !== null ? `
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-white">
+                                        <h6 class="mb-0"><i class="fas fa-baby me-2"></i>Resultado del Parto</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Crías Vivas:</strong> ${data.crias_vivas}</p>
+                                        <p class="mb-2"><strong>Crías Muertas:</strong> ${data.crias_muertas || 0}</p>
+                                        ${data.peso_promedio ? `<p class="mb-0"><strong>Peso Promedio:</strong> ${data.peso_promedio} kg</p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${data.observaciones ? `
+                        <div class="mb-3">
+                            <div class="card border-secondary">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-clipboard me-2"></i>Observaciones</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-0">${data.observaciones}</p>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${data.complicaciones ? `
+                        <div class="mb-3">
+                            <div class="card border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Complicaciones</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-0">${data.complicaciones}</p>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    `;
+
+                        $('#reproductionDetails').html(detailsHtml);
+
+                        const modal = new bootstrap.Modal(document.getElementById('viewDetailsModal'));
+                        modal.show();
+                    } else {
+                        showErrorAlert(result.message || 'Error al cargar los detalles');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showErrorAlert('Error de conexión: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // ================ ELIMINAR REPRODUCCIÓN ================
+            $('body').on('click', '.delete-reproduction', function () {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: '¿Eliminar registro?',
+                    text: `¿Estás seguro de eliminar este registro de reproducción?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    allowOutsideClick: false
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        showLoading();
+                        try {
+                            const response = await fetch(`/reproduction/delete/${id}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                                showSuccessAlert('Registro eliminado correctamente');
+                                setTimeout(() => location.reload(), 1500);
+                            } else {
+                                showErrorAlert(result.message || 'Error al eliminar');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            showErrorAlert('Error de conexión: ' + error.message);
+                        } finally {
+                            hideLoading();
+                        }
+                    }
+                });
+            });
+
+            // ================ FUNCIONES AUXILIARES ================
+            function refreshTable() {
+                showLoading();
+                setTimeout(() => location.reload(), 500);
+            }
+
+            window.refreshTable = refreshTable;
+
+            // Limpiar modal al cerrar
+            $('#newReproductionModal').on('hidden.bs.modal', function () {
+                $('#newReproductionForm')[0].reset();
+                $('input[name="fecha_cubricion"]').val(today);
+            });
+
+            $('#editReproductionModal').on('hidden.bs.modal', function () {
+                $('#editReproductionForm')[0].reset();
+            });
+
+            $('#registerBirthModal').on('hidden.bs.modal', function () {
+                $('#registerBirthForm')[0].reset();
+                $('input[name="fecha_parto_real"]').val(today);
+                $('input[name="crias_vivas"]').val(1);
+                $('input[name="crias_muertas"]').val(0);
+            });
+
+            // Inicializar tooltips
+            $('[title]').tooltip({
+                trigger: 'hover',
+                placement: 'top'
+            });
+        });
+    </script>
+</body>
+
+</html>

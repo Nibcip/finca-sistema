@@ -1,0 +1,439 @@
+:root {
+    --primary-color: #0cc980;
+    --secondary-color: #00b765;
+    --warning-color: #f6c23e;
+    --danger-color: #f02303c1;
+    --info-color: #175d68;
+    --dark-color: #ffffff8e;
+    --light-color: #000000;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(rgba(113, 113, 113, 0.305), rgba(255, 255, 255, 0.503)), 
+                url('/images/login.jpg') no-repeat center center fixed;
+}
+
+/* Login Page */
+.login-body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.login-card {
+    border: none;
+    border-radius: 10px;
+    
+}
+
+.login-card .card-title {
+    color: var(--primary-color);
+    font-weight: 700;
+    
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    background: linear-gradient(180deg, #00852a 10%, #ffffff67 100%);
+    z-index: 1000;
+    padding-top: 20px;
+    transition: all 0.3s;
+}
+
+.sidebar-brand {
+    height: 70px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: 800;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    z-index: 1;
+    color: #ffffff !important;
+}
+
+.sidebar-brand-icon {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+}
+
+.sidebar .nav-item {
+    position: relative;
+    margin-bottom: 0.25rem;
+}
+
+.sidebar .nav-link {
+    color: rgba(0, 0, 0, 0.8) !important;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+}
+
+.sidebar .nav-link:hover {
+    color: #000000 !important;
+}
+
+.sidebar .nav-link.active {
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.5rem;
+}
+
+/* Main Content */
+#content-wrapper {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 0.35rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgb(0, 0, 0);
+}
+
+.card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #000000;
+    padding: 1rem 1.35rem;
+}
+
+/* Stats Cards */
+.stat-card {
+    border-left: 4px solid;
+}
+
+.stat-card.primary {
+    border-left-color: var(--primary-color);
+}
+
+.stat-card.success {
+    border-left-color: var(--secondary-color);
+}
+
+.stat-card.warning {
+    border-left-color: var(--warning-color);
+}
+
+.stat-card.danger {
+    border-left-color: var(--danger-color);
+}
+
+.stat-card .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-card .stat-label {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+/* Charts */
+.chart-container {
+    position: relative;
+    height: 250px;
+}
+
+/* Tables */
+.table th {
+    border-top: none;
+    font-weight: 700;
+    color: var(--dark-color);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+}
+
+/* Activity Feed */
+.activity-item {
+    position: relative;
+    padding: 0.5rem 0;
+    border-left: 1px solid #000000;
+    margin-left: 1rem;
+}
+
+.activity-item:before {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 1rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+}
+
+.activity-item.success:before {
+    background-color: var(--secondary-color);
+}
+
+.activity-item.warning:before {
+    background-color: var(--warning-color);
+}
+
+.activity-item.info:before {
+    background-color: var(--info-color);
+}
+
+.activity-item.danger:before {
+    background-color: var(--danger-color);
+}
+
+.activity-item .activity-content {
+    background-color: #ffffff;
+    border-radius: 0.35rem;
+    padding: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    #content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* CORRECCIÓN DE COLOR DE TEXTO */
+body {
+    color: #000000 !important;
+}
+
+table {
+    color: #000000 !important;
+}
+
+table th,
+table td {
+    color: #000000 !important;
+}
+
+.card,
+.card-body {
+    color: #000000 !important;
+}
+
+/* Override de cualquier estilo que ponga texto blanco */
+* {
+    color: #000000 !important;
+}
+
+/* ============================================
+   ESTILOS ADICIONALES PARA EL INVENTARIO
+   ============================================ */
+
+/* Sidebar para Inventario */
+.sidebar-inventory .nav-link.active {
+    color: #000000 !important;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Badges para niveles de stock */
+.badge-critical {
+    background-color: #e74a3b;
+    color: white;
+}
+
+.badge-low {
+    background-color: #f6c23e;
+    color: black;
+}
+
+.badge-normal {
+    background-color: #1cc88a;
+    color: white;
+}
+
+.badge-expired {
+    background-color: #858796;
+    color: white;
+}
+
+/* Barras de stock */
+.stock-bar {
+    height: 10px;
+    border-radius: 5px;
+    background-color: #eaecf4;
+    overflow: hidden;
+}
+
+.stock-fill {
+    height: 100%;
+    border-radius: 5px;
+}
+
+/* Tarjetas especializadas */
+.value-card {
+    border-left: 4px solid #00fd4c;
+}
+
+.quantity-card {
+    border-left: 4px solid #1cc88a;
+}
+
+.warning-card {
+    border-left: 4px solid #f6c23e;
+}
+
+.danger-card {
+    border-left: 4px solid #e74a3b;
+}
+
+/* Mejoras para tablas de inventario */
+#inventoryTable th {
+    background-color: #f8f9fc;
+    border-bottom: 2px solid #e3e6f0;
+}
+
+#inventoryTable td {
+    vertical-align: middle;
+}
+
+/* Botones de acción en inventario */
+.btn-group-inventory .btn {
+    margin-right: 2px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Modal de inventario */
+.modal-inventory .modal-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.modal-inventory .modal-title {
+    color: #4e73df;
+    font-weight: 600;
+}
+
+/* Alertas de inventario */
+.alert-inventory {
+    border-left: 4px solid #f6c23e;
+    background-color: #fffbf0;
+}
+
+/* Indicadores de vencimiento */
+.expiration-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+}
+
+.expiration-badge.danger {
+    background-color: #e74a3b;
+    color: white;
+}
+
+.expiration-badge.warning {
+    background-color: #f6c23e;
+    color: black;
+}
+
+.expiration-badge.success {
+    background-color: #1cc88a;
+    color: white;
+}
+
+/* Dropdown para reportes */
+.report-dropdown .dropdown-menu {
+    min-width: 250px;
+    padding: 0.5rem;
+}
+
+.report-dropdown .dropdown-item {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+}
+
+.report-dropdown .dropdown-item:hover {
+    background-color: #f8f9fc;
+}
+
+/* Formularios de inventario */
+.inventory-form .form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+.inventory-form .form-control,
+.inventory-form .form-select {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+}
+
+.inventory-form .form-control:focus,
+.inventory-form .form-select:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+/* Responsive para inventario */
+@media (max-width: 992px) {
+    .inventory-table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    .inventory-table-responsive .btn-group {
+        flex-direction: column;
+    }
+    
+    .inventory-table-responsive .btn {
+        margin-bottom: 2px;
+    }
+}
+
+/* Animaciones para cambios de stock */
+@keyframes stockChange {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(28, 200, 138, 0.1); }
+    100% { background-color: transparent; }
+}
+
+.stock-change {
+    animation: stockChange 1s ease-in-out;
+}
+
+/* Tooltips personalizados para inventario */
+.tooltip-inventory {
+    font-size: 0.875rem;
+    max-width: 300px;
+}
+
+/* Estados de hover para filas de inventario */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fc;
+}
+
+/* Íconos especiales para inventario */
+.icon-inventory {
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+/* Estilos para gráficos de inventario */
+.chart-inventory {
+    max-height: 300px;
+}
+
+/* Estilos para el footer del inventario */
+.inventory-footer {
+    background-color: #f8f9fc;
+    border-top: 1px solid #e3e6f0;
+    padding: 1rem 0;
+}

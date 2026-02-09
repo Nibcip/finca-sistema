@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GanaSys - Inicio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body> 
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cow"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">GanaSys</div>
+        </a>
+        <hr class="sidebar-divider my-0">
+    <ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Inicio</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/users">
+            <i class="fas fa-fw fa-users"></i>
+            <span>Usuarios</span>
+        </a>
+    </li>
+    <% } %>
+    <li class="nav-item">
+        <a class="nav-link" href="/livestock">
+            <i class="fas fa-fw fa-cow"></i>
+            <span>Ganado y Porcinos</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/reproduction">
+            <i class="fas fa-fw fa-heart"></i>
+            <span>Reproducción</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/health">
+            <i class="fas fa-fw fa-syringe"></i>
+            <span>Vacunación y Sanidad</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor') { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/sales">
+            <i class="fas fa-fw fa-dollar-sign"></i>
+            <span>Ventas</span>
+        </a>
+    </li>
+    <% } %>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <!-- INVENTARIO DEBE IR AQUÍ (después de Ventas) -->
+    <li class="nav-item">
+        <a class="nav-link" href="/inventory">
+            <i class="fas fa-fw fa-warehouse"></i>
+            <span>Inventario</span>
+        </a>
+    </li>
+    <% } %>
+    <!-- FIN DEL INVENTARIO -->
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">
+            <i class="fas fa-fw fa-sign-out-alt"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </li>
+</ul>
+    </div>
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                <button id="sidebarToggle" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item dropdown no-arrow">
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="container-fluid">
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">Inicio</h1>
+                </div>
+
+                <div class="row">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card primary h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="stat-label text-uppercase mb-1">Ganado</div>
+                                        <div class="stat-value text-gray-800"><%= stats.cattle_count || 0 %></div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-cow fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card success h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="stat-label text-uppercase mb-1">Porcinos</div>
+                                        <div class="stat-value text-gray-800"><%= stats.pigs_count || 0 %></div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-piggy-bank fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card warning h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="stat-label text-uppercase mb-1">Vacunaciones</div>
+                                        <div class="stat-value text-gray-800"><%= stats.vaccinations_count || 0 %></div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-syringe fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card danger h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="stat-label text-uppercase mb-1">Ventas ($)</div>
+                                        <div class="stat-value text-gray-800">$<%= stats.sales_amount || 0 %></div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Producción de Leche (Últimos 30 días)</h6>
+
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="milkProductionChart" data-production="<%= JSON.stringify(milkProduction) %>"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Ventas Mensuales (Últimos 6 meses)</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="monthlySalesChart" data-sales="<%= JSON.stringify(monthlySales) %>"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Actividad Reciente</h6>
+                            </div>
+                            <div class="card-body">
+                                <% recentActivities.forEach((activity, index) => { %>
+                                    <div class="activity-item <%= activity.type %>">
+                                        <div class="activity-content">
+                                            <div class="d-flex justify-content-between">
+                                                <h6 class="mb-1"><%= activity.title %></h6>
+                                                <small class="text-muted"><%= activity.time %></small>
+                                            </div>
+                                            <p class="mb-0 text-gray-600"><%= activity.description %></p>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Resumen del Sistema</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-primary">
+                                                <i class="fas fa-cow text-white"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    Ganado Activo
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    <%= stats.cattle_count || 0 %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-success">
+                                                <i class="fas fa-piggy-bank text-white"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                    Porcinos Activos
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    <%= stats.pigs_count || 0 %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-warning">
+                                                <i class="fas fa-syringe text-white"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                    Vacunas este mes
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    <%= stats.vaccinations_count || 0 %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-danger">
+                                                <i class="fas fa-dollar-sign text-white"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                                    Ventas este mes
+                                                </div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                    $<%= stats.sales_amount || 0 %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/script.js"></script>
+</body>
+</html>

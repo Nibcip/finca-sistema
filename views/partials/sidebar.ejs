@@ -1,0 +1,60 @@
+<!-- views/partials/sidebar.ejs -->
+<div class="sidebar">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center py-4" href="/dashboard">
+        <div class="sidebar-brand-icon">
+            <i class="fas fa-cow"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">GanaSys</div>
+    </a>
+    <hr class="sidebar-divider my-0">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>" href="/dashboard">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= currentPage === 'users' ? 'active' : '' %>" href="/users">
+                <i class="fas fa-fw fa-users"></i>
+                <span>Usuarios</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= currentPage === 'livestock' ? 'active' : '' %>" href="/livestock">
+                <i class="fas fa-fw fa-cow"></i>
+                <span>Ganado</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= currentPage === 'reproduction' ? 'active' : '' %>" href="/reproduction">
+                <i class="fas fa-fw fa-heart"></i>
+                <span>Reproducción</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= currentPage === 'health' ? 'active' : '' %>" href="/health">
+                <i class="fas fa-fw fa-syringe"></i>
+                <span>Sanidad</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= currentPage === 'sales' ? 'active' : '' %>" href="/sales">
+                <i class="fas fa-fw fa-dollar-sign"></i>
+                <span>Ventas</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= currentPage === 'inventory' ? 'active' : '' %>" href="/inventory">
+                <i class="fas fa-fw fa-warehouse"></i>
+                <span>Inventario</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/logout">
+                <i class="fas fa-fw fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GanaSys - Inventario de Alimentos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Colores verde manzana */
+        :root {
+            --apple-green: #00b627;
+            --apple-green-dark: #32CD32;
+            --apple-green-light: #00cc00;
+            --apple-green-very-light: #ffffff;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        .sidebar {
+            background-color: #2E7D32 !important;
+            color: white;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid var(--apple-green);
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-header {
+            background-color: var(--apple-green-very-light) !important;
+            border-bottom: 2px solid var(--apple-green-light) !important;
+            color: #2E7D32 !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--apple-green-dark) !important;
+            border-color: var(--apple-green-dark) !important;
+        }
+        
+        .btn-primary:hover {
+            background-color: #228B22 !important;
+            border-color: #228B22 !important;
+        }
+        
+        .btn-success {
+            background-color: var(--apple-green) !important;
+            border-color: var(--apple-green) !important;
+        }
+        
+        .btn-success:hover {
+            background-color: #32CD32 !important;
+            border-color: #32CD32 !important;
+        }
+        
+        .badge-critical {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        
+        .badge-low {
+            background-color: #ffc107 !important;
+            color: black !important;
+        }
+        
+        .badge-normal {
+            background-color: var(--apple-green-dark) !important;
+            color: white !important;
+        }
+        
+        .badge-expired {
+            background-color: #6c757d !important;
+            color: white !important;
+        }
+        
+        .stock-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .stock-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        /* Tarjetas con borde izquierdo verde */
+        .value-card {
+            border-left: 4px solid #4e73df !important;
+        }
+        
+        .quantity-card {
+            border-left: 4px solid var(--apple-green-dark) !important;
+        }
+        
+        .warning-card {
+            border-left: 4px solid #ffc107 !important;
+        }
+        
+        .danger-card {
+            border-left: 4px solid #dc3545 !important;
+        }
+        
+        /* Ajuste para que la tabla no sea tan alta */
+        #content-wrapper {
+            min-height: 100vh !important;
+        }
+        
+        #content {
+            padding-top: 0 !important;
+        }
+        
+        .container-fluid {
+            padding: 20px !important;
+        }
+        
+        /* Ajuste de altura del modal */
+        .modal-dialog {
+            max-height: 85vh !important;
+            margin-top: 5vh !important;
+        }
+        
+        .modal-content {
+            max-height: 85vh !important;
+            overflow-y: auto !important;
+        }
+        
+        /* Estilos para los botones de acción */
+        .btn-outline-primary {
+            color: var(--apple-green-dark) !important;
+            border-color: var(--apple-green-dark) !important;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--apple-green-dark) !important;
+            color: white !important;
+        }
+        
+        .btn-outline-success {
+            color: var(--apple-green) !important;
+            border-color: var(--apple-green) !important;
+        }
+        
+        .btn-outline-success:hover {
+            background-color: var(--apple-green) !important;
+            color: white !important;
+        }
+        
+        /* Corrección de espacio */
+        .topbar {
+            margin-bottom: 0 !important;
+            padding: 10px 0 !important;
+        }
+        
+        .page-heading {
+            margin-bottom: 20px !important;
+        }
+        
+        /* Scroll suave para tablas largas */
+        .table-responsive {
+            max-height: 500px !important;
+            overflow-y: auto !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar incluido desde parcial -->
+    <%- include('partials/sidebar', { currentPage: 'inventory' }) %>
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cow"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">GanaSys</div>
+        </a>
+        <hr class="sidebar-divider my-0">
+    <ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Inicio</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/users">
+            <i class="fas fa-fw fa-users"></i>
+            <span>Usuarios</span>
+        </a>
+    </li>
+    <% } %>
+    <li class="nav-item">
+        <a class="nav-link" href="/livestock">
+            <i class="fas fa-fw fa-cow"></i>
+            <span>Ganado y Porcinos</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/reproduction">
+            <i class="fas fa-fw fa-heart"></i>
+            <span>Reproducción</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/health">
+            <i class="fas fa-fw fa-syringe"></i>
+            <span>Vacunación y Sanidad</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor') { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/sales">
+            <i class="fas fa-fw fa-dollar-sign"></i>
+            <span>Ventas</span>
+        </a>
+    </li>
+    <% } %>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <!-- INVENTARIO DEBE IR AQUÍ (después de Ventas) -->
+    <li class="nav-item">
+        <a class="nav-link" href="/inventory">
+            <i class="fas fa-fw fa-warehouse"></i>
+            <span>Inventario</span>
+        </a>
+    </li>
+    <% } %>
+    <!-- FIN DEL INVENTARIO -->
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">
+            <i class="fas fa-fw fa-sign-out-alt"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </li>
+</ul>
+    </div>
+
+            <!-- Page Content -->
+            <div class="container-fluid">
+                <!-- Page Heading -->
+                <div class="d-sm-flex align-items-center justify-content-between mb-4 page-heading">
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-warehouse me-2" style="color: var(--apple-green-dark);"></i>Inventario de Alimentos
+                    </h1>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addInventoryModal">
+                            <i class="fas fa-plus fa-sm me-1"></i> Nuevo Alimento
+                        </button>
+                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal">
+                            <i class="fas fa-file-pdf fa-sm me-1"></i> Generar Reporte
+                        </button>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#outMovementModal">
+                            <i class="fas fa-sign-out-alt fa-sm me-1"></i> Registrar Salida
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Estadísticas -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card value-card shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Valor Total Inventario
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            $<%= (stats.total_value || 0).toLocaleString('es-ES', {minimumFractionDigits: 2}) %>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card quantity-card shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Total Items
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= stats.total_items || 0 %>
+                                        </div>
+                                        <div class="mt-2 mb-0 text-muted text-xs">
+                                            <span class="text-success mr-2"><i class="fas fa-arrow-up"></i> Disponible</span>
+                                            <span class="text-nowrap"><%= (stats.total_items || 0) - (stats.out_of_stock || 0) - (stats.low_stock || 0) %> items</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card warning-card shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Stock Bajo
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= stats.low_stock || 0 %>
+                                        </div>
+                                        <div class="mt-2 mb-0 text-muted text-xs">
+                                            <span class="text-warning mr-2"><i class="fas fa-exclamation-triangle"></i> Atención</span>
+                                            <span>Reabastecer pronto</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card danger-card shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                            Agotados
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= stats.out_of_stock || 0 %>
+                                        </div>
+                                        <div class="mt-2 mb-0 text-muted text-xs">
+                                            <span class="text-danger mr-2"><i class="fas fa-times-circle"></i> Urgente</span>
+                                            <span>Reabastecer inmediato</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Distribución por tipo de animal -->
+                <div class="row mb-4">
+                    <div class="col-lg-4">
+                        <div class="card shadow">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Valor por Tipo de Animal</h6>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="animalValueChart" width="100%" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card shadow">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Movimientos Recientes</h6>
+                                <span class="badge bg-primary"><%= movements.length %> movimientos</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Alimento</th>
+                                                <th>Tipo</th>
+                                                <th>Cantidad</th>
+                                                <th>Responsable</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if (movements && movements.length > 0) { %>
+                                                <% movements.forEach(mov => { %>
+                                                <tr>
+                                                    <td><%= new Date(mov.movement_date).toLocaleDateString() %></td>
+                                                    <td><%= mov.food_name %></td>
+                                                    <td>
+                                                        <span class="badge bg-<%= mov.movement_type === 'entrada' ? 'success' : 'warning' %>">
+                                                            <%= mov.movement_type === 'entrada' ? 'ENTRADA' : 'SALIDA' %>
+                                                        </span>
+                                                    </td>
+                                                    <td class="<%= mov.movement_type === 'entrada' ? 'text-success' : 'text-danger' %>">
+                                                        <%= mov.movement_type === 'entrada' ? '+' : '-' %><%= mov.quantity %> <%= mov.unit || 'kg' %>
+                                                    </td>
+                                                    <td><%= mov.responsable %></td>
+                                                </tr>
+                                                <% }); %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted">No hay movimientos registrados</td>
+                                                </tr>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla principal de inventario -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Inventario de Alimentos</h6>
+                        <span class="badge bg-primary"><%= inventory ? inventory.length : 0 %> alimentos registrados</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="inventoryTable" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Alimento</th>
+                                        <th>Categoría</th>
+                                        <th>Lote</th>
+                                        <th>Cantidad</th>
+                                        <th>Stock</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Valor Total</th>
+                                        <th>Animal</th>
+                                        <th>Vencimiento</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (inventory && inventory.length > 0) { %>
+                                        <% inventory.forEach(item => { 
+                                            const stockPercentage = item.max_stock > 0 ? (item.quantity / item.max_stock) * 100 : 0;
+                                            let stockColor = '#32CD32'; // Verde manzana
+                                            if (stockPercentage < 30) stockColor = '#dc3545';
+                                            else if (stockPercentage < 60) stockColor = '#ffc107';
+                                        %>
+                                        <tr>
+                                            <td>
+                                                <div class="font-weight-bold"><%= item.food_name %></div>
+                                                <div class="text-muted small"><%= item.storage_location || 'Sin ubicación' %></div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">
+                                                    <%= item.category ? item.category.toUpperCase() : 'N/A' %>
+                                                </span>
+                                            </td>
+                                            <td><%= item.lot_number || 'N/A' %></td>
+                                            <td>
+                                                <div class="font-weight-bold"><%= item.quantity ? item.quantity.toLocaleString('es-ES') : 0 %> <%= item.unit || 'kg' %></div>
+                                                <div class="stock-bar mt-1">
+                                                    <div class="stock-fill" style="width: <%= Math.min(stockPercentage, 100) %>%; background-color: <%= stockColor %>;"></div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                Min: <%= item.min_stock || 0 %> <%= item.unit || 'kg' %><br>
+                                                Max: <%= item.max_stock || 0 %> <%= item.unit || 'kg' %>
+                                            </td>
+                                            <td>$<%= item.unit_price ? item.unit_price.toLocaleString('es-ES', {minimumFractionDigits: 2}) : '0.00' %></td>
+                                            <td class="font-weight-bold text-primary">
+                                                $<%= item.total_value ? item.total_value.toLocaleString('es-ES', {minimumFractionDigits: 2}) : '0.00' %>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-<%= 
+                                                    item.animal_type === 'ganado' ? 'warning' : 
+                                                    item.animal_type === 'porcino' ? 'success' : 'secondary'
+                                                %>">
+                                                    <%= item.animal_type === 'ganado' ? 'GANADO' : 
+                                                       item.animal_type === 'porcino' ? 'PORCINO' : 
+                                                       item.animal_type === 'ambos' ? 'AMBOS' : 'N/A' %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <% if (item.expiration_date) { %>
+                                                    <%= new Date(item.expiration_date).toLocaleDateString() %>
+                                                    <br>
+                                                    <% if (item.days_to_expire !== undefined) { %>
+                                                        <small class="text-<%= item.days_to_expire < 0 ? 'danger' : item.days_to_expire < 30 ? 'warning' : 'muted' %>">
+                                                            <% if (item.days_to_expire < 0) { %>
+                                                                Vencido hace <%= Math.abs(item.days_to_expire) %> días
+                                                            <% } else if (item.days_to_expire < 30) { %>
+                                                                Vence en <%= item.days_to_expire %> días
+                                                            <% } else { %>
+                                                                Vence en <%= item.days_to_expire %> días
+                                                            <% } %>
+                                                        </small>
+                                                    <% } %>
+                                                <% } else { %>
+                                                    <span class="text-muted">No vence</span>
+                                                <% } %>
+                                            </td>
+                                            <td>
+                                                <span class="badge <%= 
+                                                    item.status === 'agotado' || item.status === 'CRITICO' ? 'badge-critical' : 
+                                                    item.status === 'bajo_stock' || item.status === 'BAJO' ? 'badge-low' : 
+                                                    item.status === 'vencido' ? 'badge-expired' : 'badge-normal'
+                                                %>">
+                                                    <%= item.status === 'agotado' || item.status === 'CRITICO' ? 'AGOTADO' : 
+                                                       item.status === 'bajo_stock' || item.status === 'BAJO' ? 'BAJO STOCK' : 
+                                                       item.status === 'vencido' ? 'VENCIDO' : 'DISPONIBLE' %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <button class="btn btn-outline-primary edit-item" 
+                                                            data-id="<%= item.id %>" 
+                                                            data-item='<%= JSON.stringify(item) %>'
+                                                            title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-success view-movements" 
+                                                            data-id="<%= item.id %>"
+                                                            data-name="<%= item.food_name %>"
+                                                            title="Ver movimientos">
+                                                        <i class="fas fa-history"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-warning adjust-stock" 
+                                                            data-id="<%= item.id %>"
+                                                            data-name="<%= item.food_name %>"
+                                                            data-quantity="<%= item.quantity %>"
+                                                            data-unit="<%= item.unit %>"
+                                                            title="Ajustar stock">
+                                                        <i class="fas fa-exchange-alt"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger delete-item" 
+        data-id="<%= item.id %>" 
+        data-name="<%= item.food_name %>"
+        title="Eliminar">
+    <i class="fas fa-trash"></i>
+</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="11" class="text-center text-muted py-4">
+                                                <i class="fas fa-box-open fa-2x mb-3"></i><br>
+                                                No hay alimentos en el inventario
+                                            </td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white mt-4">
+            <div class="container my-auto">
+
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal para nuevo alimento -->
+    <div class="modal fade" id="addInventoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Agregar Nuevo Alimento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addInventoryForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Alimento *</label>
+                                <select class="form-select" id="food_type_id" name="food_type_id" required>
+                                    <option value="">Seleccionar tipo</option>
+                                    <% if (foodTypes && foodTypes.length > 0) { %>
+                                        <% foodTypes.forEach(type => { %>
+                                        <option value="<%= type.id %>" data-category="<%= type.category %>" data-unit="<%= type.unit %>">
+                                            <%= type.name %> (<%= type.category %> - <%= type.unit %>)
+                                        </option>
+                                        <% }); %>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Lote</label>
+                                <input type="text" class="form-control" id="lot_number" name="lot_number" 
+                                       placeholder="Ej: LOTE-2024-001">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Cantidad *</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" 
+                                       step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Precio Unitario ($) *</label>
+                                <input type="number" class="form-control" id="unit_price" name="unit_price" 
+                                       step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Proveedor</label>
+                                <input type="text" class="form-control" id="supplier" name="supplier" 
+                                       placeholder="Nombre del proveedor">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha de Ingreso *</label>
+                                <input type="date" class="form-control" id="entry_date" name="entry_date" 
+                                       value="<%= new Date().toISOString().split('T')[0] %>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha de Vencimiento</label>
+                                <input type="date" class="form-control" id="expiration_date" name="expiration_date">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ubicación en Almacén</label>
+                                <input type="text" class="form-control" id="storage_location" name="storage_location" 
+                                       placeholder="Ej: Bodega A, Estante 3">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Animal *</label>
+                                <select class="form-select" id="animal_type" name="animal_type" required>
+                                    <option value="ambos">Ambos (Ganado y Porcinos)</option>
+                                    <option value="ganado">Solo Ganado</option>
+                                    <option value="porcino">Solo Porcinos</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock Mínimo</label>
+                                <input type="number" class="form-control" id="min_stock" name="min_stock" 
+                                       step="0.01" min="0" value="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock Máximo</label>
+                                <input type="number" class="form-control" id="max_stock" name="max_stock" 
+                                       step="0.01" min="0" value="0">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notas/Observaciones</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                      placeholder="Información adicional sobre el alimento..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="saveInventoryBtn">
+                        <i class="fas fa-save me-2"></i>Guardar Alimento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para registrar salida -->
+    <div class="modal fade" id="outMovementModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title"><i class="fas fa-sign-out-alt me-2"></i>Registrar Salida de Alimento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="outMovementForm">
+                        <div class="mb-3">
+                            <label class="form-label">Alimento *</label>
+                            <select class="form-select" id="movement_inventory_id" name="inventory_id" required>
+                                <option value="">Seleccionar alimento</option>
+                                <% if (inventory && inventory.length > 0) { %>
+                                    <% inventory.filter(item => item.quantity > 0).forEach(item => { %>
+                                    <option value="<%= item.id %>" data-quantity="<%= item.quantity %>" 
+                                            data-unit="<%= item.unit %>" data-animal="<%= item.animal_type %>">
+                                        <%= item.food_name %> - <%= item.quantity %> <%= item.unit %> disponible
+                                    </option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cantidad a Retirar *</label>
+                                <input type="number" class="form-control" id="movement_quantity" name="quantity" 
+                                       step="0.01" min="0.01" required>
+                                <small class="text-muted" id="availableQuantity"></small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Animal</label>
+                                <select class="form-select" id="movement_animal_type" name="animal_type">
+                                    <option value="">Seleccionar</option>
+                                    <option value="ganado">Ganado</option>
+                                    <option value="porcino">Porcinos</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Grupo/Corral (opcional)</label>
+                            <input type="text" class="form-control" id="animal_group" name="animal_group" 
+                                   placeholder="Ej: Corral 1, Engorde, Maternidad">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Motivo/Propósito *</label>
+                            <input type="text" class="form-control" id="movement_reason" name="reason" 
+                                   placeholder="Ej: Alimentación diaria, Tratamiento especial" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notas Adicionales</label>
+                            <textarea class="form-control" id="movement_notes" name="notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="saveMovementBtn">
+                        <i class="fas fa-check me-2"></i>Registrar Salida
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para generar reportes -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="fas fa-file-pdf me-2"></i>Generar Reporte</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Reporte *</label>
+                        <select class="form-select" id="reportType">
+                            <option value="complete">Inventario Completo</option>
+                            <option value="low_stock">Stock Bajo/Crítico</option>
+                            <option value="expiring">Productos por Vencer</option>
+                            <option value="cattle">Alimentos para Ganado</option>
+                            <option value="pig">Alimentos para Porcinos</option>
+                            <option value="value">Valorización del Inventario</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Formato</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="reportFormat" id="formatPdf" value="pdf" checked>
+                            <label class="form-check-label" for="formatPdf">
+                                PDF (Recomendado para imprimir)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="reportFormat" id="formatExcel" value="excel">
+                            <label class="form-check-label" for="formatExcel">
+                                Excel (Para análisis de datos)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        El reporte se generará con los datos actuales del sistema.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-info text-white" id="generateReportBtn">
+                        <i class="fas fa-download me-2"></i>Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Alimento -->
+    <div class="modal fade" id="editInventoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Alimento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editInventoryForm">
+                        <input type="hidden" id="edit_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre del Alimento *</label>
+                                <input type="text" class="form-control" id="edit_food_name" name="food_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Lote</label>
+                                <input type="text" class="form-control" id="edit_lot_number" name="lot_number">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Cantidad *</label>
+                                <input type="number" class="form-control" id="edit_quantity" name="quantity" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Unidad *</label>
+                                <select class="form-select" id="edit_unit" name="unit" required>
+                                    <option value="kg">kg</option>
+                                    <option value="ton">ton</option>
+                                    <option value="saco">saco</option>
+                                    <option value="litro">litro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Precio Unitario ($) *</label>
+                                <input type="number" class="form-control" id="edit_unit_price" name="unit_price" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha de Vencimiento</label>
+                                <input type="date" class="form-control" id="edit_expiration_date" name="expiration_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Categoría *</label>
+                                <select class="form-select" id="edit_category" name="category" required>
+                                    <option value="concentrado">Concentrado</option>
+                                    <option value="forraje">Forraje</option>
+                                    <option value="suplemento">Suplemento</option>
+                                    <option value="medicamento">Medicamento</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ubicación en Almacén</label>
+                                <input type="text" class="form-control" id="edit_storage_location" name="storage_location">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Animal *</label>
+                                <select class="form-select" id="edit_animal_type" name="animal_type" required>
+                                    <option value="ambos">Ambos</option>
+                                    <option value="ganado">Ganado</option>
+                                    <option value="porcino">Porcinos</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock Mínimo</label>
+                                <input type="number" class="form-control" id="edit_min_stock" name="min_stock" step="0.01" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock Máximo</label>
+                                <input type="number" class="form-control" id="edit_max_stock" name="max_stock" step="0.01" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notas/Observaciones</label>
+                            <textarea class="form-control" id="edit_notes" name="notes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateInventoryBtn">
+                        <i class="fas fa-save me-2"></i>Actualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Movimientos -->
+    <div class="modal fade" id="movementsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-history me-2"></i>Movimientos del Alimento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 id="movementFoodName" class="mb-3"></h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="movementsTable">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Responsable</th>
+                                    <th>Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movementsBody">
+                                <!-- Los movimientos se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3" id="noMovementsMessage">
+                        <p class="text-muted">Cargando movimientos...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ajustar Stock -->
+    <div class="modal fade" id="adjustStockModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i>Ajustar Stock</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="adjustStockForm">
+                        <input type="hidden" id="adjust_id" name="id">
+                        <div class="mb-3">
+                            <label class="form-label">Alimento</label>
+                            <input type="text" class="form-control" id="adjust_food_name" readonly>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Stock Actual</label>
+                                <input type="text" class="form-control" id="adjust_current_stock" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Unidad</label>
+                                <input type="text" class="form-control" id="adjust_unit" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Ajuste *</label>
+                            <select class="form-select" id="adjust_type" name="adjust_type" required>
+                                <option value="entrada">Entrada (Aumentar stock)</option>
+                                <option value="salida">Salida (Disminuir stock)</option>
+                                <option value="correccion">Corrección (Establecer nuevo valor)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad *</label>
+                            <input type="number" class="form-control" id="adjust_quantity" name="quantity" 
+                                   step="0.01" min="0.01" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Motivo del Ajuste *</label>
+                            <select class="form-select" id="adjust_reason" name="reason" required>
+                                <option value="">Seleccionar motivo</option>
+                                <option value="inventario_fisico">Inventario físico</option>
+                                <option value="merma_natural">Merma natural</option>
+                                <option value="error_registro">Error en registro</option>
+                                <option value="ajuste_calidad">Ajuste por calidad</option>
+                                <option value="donacion">Donación</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Detalles Adicionales</label>
+                            <textarea class="form-control" id="adjust_details" name="details" rows="3" 
+                                      placeholder="Explique el motivo del ajuste..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="saveAdjustmentBtn">
+                        <i class="fas fa-check me-2"></i>Aplicar Ajuste
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar DataTable
+            $('#inventoryTable').DataTable({
+                pageLength: 25,
+               language: {
+    search: "Buscar:",
+    lengthMenu: "Mostrar _MENU_ elementos",
+    info: "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+    paginate: {
+        first: "Primero",
+        last: "Último",
+        next: "Siguiente",
+        previous: "Anterior"
+    }
+},
+            });
+            
+            // Gráfico de distribución por tipo de animal
+            const animalValueChart = new Chart(
+                document.getElementById('animalValueChart').getContext('2d'),
+                {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Ganado', 'Porcinos', 'Ambos'],
+                        datasets: [{
+                            data: [
+                                <%= stats.cattle_value || 0 %>,
+                                <%= stats.pig_value || 0 %>,
+                                <%= stats.both_value || 0 %>
+                            ],
+                            backgroundColor: [
+                                '#f6c23e',
+                                '#32CD32',
+                                '#4e73df'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // Guardar nuevo alimento
+            document.getElementById('saveInventoryBtn').addEventListener('click', function() {
+                const form = document.getElementById('addInventoryForm');
+                const formData = new FormData(form);
+                
+                // Validaciones
+                if (!formData.get('food_type_id') || !formData.get('quantity') || 
+                    !formData.get('unit_price') || !formData.get('entry_date')) {
+                    alert('Por favor complete todos los campos requeridos (*)');
+                    return;
+                }
+                
+                const data = {
+                    food_type_id: formData.get('food_type_id'),
+                    lot_number: formData.get('lot_number') || null,
+                    quantity: parseFloat(formData.get('quantity')),
+                    unit_price: parseFloat(formData.get('unit_price')),
+                    supplier: formData.get('supplier') || null,
+                    entry_date: formData.get('entry_date'),
+                    expiration_date: formData.get('expiration_date') || null,
+                    storage_location: formData.get('storage_location') || null,
+                    animal_type: formData.get('animal_type'),
+                    min_stock: parseFloat(formData.get('min_stock')) || 0,
+                    max_stock: parseFloat(formData.get('max_stock')) || 0,
+                    notes: formData.get('notes') || null
+                };
+                
+                fetch('/inventory/api/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Alimento agregado exitosamente');
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('addInventoryModal'));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al guardar el alimento');
+                });
+            });
+            
+            // Registrar salida de alimento
+            const movementSelect = document.getElementById('movement_inventory_id');
+            const quantityInput = document.getElementById('movement_quantity');
+            
+            movementSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const available = parseFloat(selectedOption.dataset.quantity);
+                const unit = selectedOption.dataset.unit;
+                const animalType = selectedOption.dataset.animal;
+                
+                document.getElementById('availableQuantity').textContent = 
+                    `Disponible: ${available} ${unit}`;
+                quantityInput.max = available;
+                
+                // Sugerir tipo de animal basado en el alimento
+                const animalSelect = document.getElementById('movement_animal_type');
+                if (animalType === 'ganado') {
+                    animalSelect.value = 'ganado';
+                } else if (animalType === 'porcino') {
+                    animalSelect.value = 'porcino';
+                }
+            });
+            
+            document.getElementById('saveMovementBtn').addEventListener('click', function() {
+                const form = document.getElementById('outMovementForm');
+                const formData = new FormData(form);
+                
+                if (!formData.get('inventory_id') || !formData.get('quantity') || !formData.get('reason')) {
+                    alert('Por favor complete los campos requeridos');
+                    return;
+                }
+                
+                const data = {
+                    inventory_id: formData.get('inventory_id'),
+                    quantity: parseFloat(formData.get('quantity')),
+                    reason: formData.get('reason'),
+                    animal_type: formData.get('animal_type') || null,
+                    animal_group: formData.get('animal_group') || null,
+                    notes: formData.get('notes') || null
+                };
+                
+                fetch('/inventory/api/movement/out', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Salida registrada exitosamente\nNuevo stock: ' + result.new_quantity);
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('outMovementModal'));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al registrar la salida');
+                });
+            });
+            
+            // Generar reporte
+            document.getElementById('generateReportBtn').addEventListener('click', function() {
+                const reportType = document.getElementById('reportType').value;
+                const format = document.querySelector('input[name="reportFormat"]:checked').value;
+                
+                let url = `/inventory/api/report/${format}?type=${reportType}`;
+                
+                if (format === 'pdf') {
+                    // Para PDF, abrir en nueva pestaña
+                    window.open(url, '_blank');
+                } else {
+                    // Para Excel, descargar directamente
+                    window.location.href = url;
+                }
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
+                modal.hide();
+            });
+            
+            // BOTONES DE ACCIÓN EN LA TABLA - FUNCIONALES
+            
+            // 1. Botón Editar
+            document.querySelectorAll('.edit-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemData = JSON.parse(this.dataset.item);
+                    
+                    // Llenar el formulario de edición
+                    document.getElementById('edit_id').value = itemData.id;
+                    document.getElementById('edit_food_name').value = itemData.food_name || '';
+                    document.getElementById('edit_lot_number').value = itemData.lot_number || '';
+                    document.getElementById('edit_quantity').value = itemData.quantity || 0;
+                    document.getElementById('edit_unit').value = itemData.unit || 'kg';
+                    document.getElementById('edit_unit_price').value = itemData.unit_price || 0;
+                    document.getElementById('edit_category').value = itemData.category || 'concentrado';
+                    document.getElementById('edit_animal_type').value = itemData.animal_type || 'ambos';
+                    document.getElementById('edit_min_stock').value = itemData.min_stock || 0;
+                    document.getElementById('edit_max_stock').value = itemData.max_stock || 0;
+                    document.getElementById('edit_storage_location').value = itemData.storage_location || '';
+                    document.getElementById('edit_notes').value = itemData.notes || '';
+                    
+                    if (itemData.expiration_date) {
+                        const expirationDate = new Date(itemData.expiration_date);
+                        document.getElementById('edit_expiration_date').value = expirationDate.toISOString().split('T')[0];
+                    } else {
+                        document.getElementById('edit_expiration_date').value = '';
+                    }
+                    
+                    // Mostrar el modal
+                    const editModal = new bootstrap.Modal(document.getElementById('editInventoryModal'));
+                    editModal.show();
+                });
+            });
+            
+            // 2. Botón Ver Movimientos
+            document.querySelectorAll('.view-movements').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    const itemName = this.dataset.name;
+                    
+                    document.getElementById('movementFoodName').textContent = `Movimientos de: ${itemName}`;
+                    
+                    // Limpiar tabla anterior
+                    document.getElementById('movementsBody').innerHTML = '';
+                    document.getElementById('noMovementsMessage').innerHTML = '<p class="text-muted">Cargando movimientos...</p>';
+                    
+                    // Mostrar modal
+                    const movementsModal = new bootstrap.Modal(document.getElementById('movementsModal'));
+                    movementsModal.show();
+                    
+                    // Cargar movimientos desde la API
+                    fetch(`/inventory/api/movements/${itemId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const movementsBody = document.getElementById('movementsBody');
+                            const noMovementsMessage = document.getElementById('noMovementsMessage');
+                            
+                            if (data.success && data.movements.length > 0) {
+                                movementsBody.innerHTML = '';
+                                data.movements.forEach(mov => {
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${new Date(mov.movement_date).toLocaleDateString()}</td>
+                                        <td>
+                                            <span class="badge bg-${mov.movement_type === 'entrada' ? 'success' : 'warning'}">
+                                                ${mov.movement_type === 'entrada' ? 'ENTRADA' : 'SALIDA'}
+                                            </span>
+                                        </td>
+                                        <td class="${mov.movement_type === 'entrada' ? 'text-success' : 'text-danger'}">
+                                            ${mov.movement_type === 'entrada' ? '+' : '-'}${mov.quantity} ${mov.unit || 'kg'}
+                                        </td>
+                                        <td>${mov.responsable || 'Sistema'}</td>
+                                        <td>${mov.reason || '-'}</td>
+                                    `;
+                                    movementsBody.appendChild(row);
+                                });
+                                noMovementsMessage.style.display = 'none';
+                            } else {
+                                movementsBody.innerHTML = '';
+                                noMovementsMessage.innerHTML = '<p class="text-muted">No hay movimientos registrados para este alimento.</p>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            document.getElementById('noMovementsMessage').innerHTML = 
+                                '<p class="text-danger">Error al cargar los movimientos.</p>';
+                        });
+                });
+            });
+            
+            // 3. Botón Ajustar Stock
+            document.querySelectorAll('.adjust-stock').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    const itemName = this.dataset.name;
+                    const currentQuantity = this.dataset.quantity;
+                    const unit = this.dataset.unit;
+                    
+                    // Llenar el formulario
+                    document.getElementById('adjust_id').value = itemId;
+                    document.getElementById('adjust_food_name').value = itemName;
+                    document.getElementById('adjust_current_stock').value = currentQuantity;
+                    document.getElementById('adjust_unit').value = unit;
+                    
+                    // Mostrar modal
+                    const adjustModal = new bootstrap.Modal(document.getElementById('adjustStockModal'));
+                    adjustModal.show();
+                });
+            });
+            
+            // Guardar edición de alimento
+            document.getElementById('updateInventoryBtn').addEventListener('click', function() {
+                const form = document.getElementById('editInventoryForm');
+                const formData = new FormData(form);
+                
+                // Validaciones básicas
+                if (!formData.get('food_name') || !formData.get('quantity') || !formData.get('unit_price')) {
+                    alert('Por favor complete los campos requeridos');
+                    return;
+                }
+                
+                const data = {
+                    id: formData.get('id'),
+                    food_name: formData.get('food_name'),
+                    lot_number: formData.get('lot_number') || null,
+                    quantity: parseFloat(formData.get('quantity')),
+                    unit: formData.get('unit'),
+                    unit_price: parseFloat(formData.get('unit_price')),
+                    expiration_date: formData.get('expiration_date') || null,
+                    category: formData.get('category'),
+                    storage_location: formData.get('storage_location') || null,
+                    animal_type: formData.get('animal_type'),
+                    min_stock: parseFloat(formData.get('min_stock')) || 0,
+                    max_stock: parseFloat(formData.get('max_stock')) || 0,
+                    notes: formData.get('notes') || null
+                };
+                
+                fetch('/inventory/api/update', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Alimento actualizado exitosamente');
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('editInventoryModal'));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al actualizar el alimento');
+                });
+            });
+            
+            // Aplicar ajuste de stock
+            document.getElementById('saveAdjustmentBtn').addEventListener('click', function() {
+                const form = document.getElementById('adjustStockForm');
+                const formData = new FormData(form);
+                
+                if (!formData.get('adjust_type') || !formData.get('quantity') || !formData.get('reason')) {
+                    alert('Por favor complete todos los campos requeridos');
+                    return;
+                }
+                
+                const data = {
+                    inventory_id: formData.get('id'),
+                    adjust_type: formData.get('adjust_type'),
+                    quantity: parseFloat(formData.get('quantity')),
+                    reason: formData.get('reason'),
+                    details: formData.get('details') || null
+                };
+                
+                fetch('/inventory/api/adjust', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Stock ajustado exitosamente\nNuevo stock: ' + result.new_quantity);
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('adjustStockModal'));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al ajustar el stock');
+                });
+            });
+            
+            // Auto-calcular precio total cuando cambia cantidad o precio unitario
+            const quantityInputs = document.querySelectorAll('input[name="quantity"], input[name="unit_price"]');
+            quantityInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const form = this.closest('form');
+                    if (form) {
+                        const quantity = parseFloat(form.querySelector('input[name="quantity"]')?.value) || 0;
+                        const unitPrice = parseFloat(form.querySelector('input[name="unit_price"]')?.value) || 0;
+                        const totalValue = quantity * unitPrice;
+                        
+                        // Buscar y actualizar campo de valor total si existe
+                        const totalField = form.querySelector('input[name="total_value"]');
+                        if (totalField) {
+                            totalField.value = totalValue.toFixed(2);
+                        }
+                    }
+                });
+            });
+            // Lógica para eliminar alimento
+document.querySelectorAll('.delete-item').forEach(button => {
+    button.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const name = this.dataset.name;
+        
+        if (confirm(`¿Estás segura de eliminar "${name}"? Esta acción no se puede deshacer.`)) {
+            fetch(`/inventory/api/delete/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al intentar eliminar');
+            });
+        }
+    });
+});
+        });
+
+    </script>
+</body>
+</html>

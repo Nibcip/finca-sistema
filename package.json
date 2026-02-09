@@ -1,0 +1,33 @@
+{
+  "name": "ganasys",
+  "version": "1.0.0",
+  "description": "Sistema web para el registro y control de procesos en fincas",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "crypto": "^1.0.1",
+    "dayjs": "^1.11.19",
+    "ejs": "^3.1.10",
+    "exceljs": "^4.4.0",
+    "express": "^4.22.1",
+    "express-session": "^1.18.2",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.16.1",
+    "pdfkit": "^0.17.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "keywords": [
+    "ganaderia",
+    "porcicultura",
+    "sistema",
+    "gestion"
+  ],
+  "author": "Tu Nombre",
+  "license": "MIT"
+}

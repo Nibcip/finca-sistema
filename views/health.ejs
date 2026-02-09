@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GanaSys - Vacunación y Sanidad</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Estilos para corrección de color de texto -->
+    <style>
+        table.table thead th,
+        table.table tbody td,
+        .table th,
+        .table td {
+            color: #000000 !important;
+        }
+        .card,
+        .card-body,
+        .card-header,
+        .table-responsive,
+        .list-group-item {
+            color: #000000 !important;
+        }
+        .badge {
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-cow"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">GanaSys</div>
+        </a>
+        <hr class="sidebar-divider my-0">
+    <ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link" href="/dashboard">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Inicio</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/users">
+            <i class="fas fa-fw fa-users"></i>
+            <span>Usuarios</span>
+        </a>
+    </li>
+    <% } %>
+    <li class="nav-item">
+        <a class="nav-link" href="/livestock">
+            <i class="fas fa-fw fa-cow"></i>
+            <span>Ganado y Porcinos</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/reproduction">
+            <i class="fas fa-fw fa-heart"></i>
+            <span>Reproducción</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/health">
+            <i class="fas fa-fw fa-syringe"></i>
+            <span>Vacunación y Sanidad</span>
+        </a>
+    </li>
+    <% if (user.role == 'admin' || user.role == 'supervisor') { %>
+    <li class="nav-item">
+        <a class="nav-link" href="/sales">
+            <i class="fas fa-fw fa-dollar-sign"></i>
+            <span>Ventas</span>
+        </a>
+    </li>
+    <% } %>
+    <% if (user.role == 'admin' || user.role == 'supervisor' || user.role == "operador") { %>
+    <!-- INVENTARIO DEBE IR AQUÍ (después de Ventas) -->
+    <li class="nav-item">
+        <a class="nav-link" href="/inventory">
+            <i class="fas fa-fw fa-warehouse"></i>
+            <span>Inventario</span>
+        </a>
+    </li>
+    <% } %>
+    <!-- FIN DEL INVENTARIO -->
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">
+            <i class="fas fa-fw fa-sign-out-alt"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </li>
+</ul>
+    </div>
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                <button id="sidebarToggle" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item dropdown no-arrow">
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="container-fluid">
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">Vacunación y Sanidad Animal</h1>
+                    <div>
+                        <button class="btn btn-success btn-sm mr-2" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                            <i class="fas fa-file-pdf fa-sm"></i> Generar Reporte
+                        </button>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newVaccinationModal">
+                            <i class="fas fa-plus fa-sm"></i> Nueva Vacunación y Tratamiento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alertas - Versión segura -->
+                <% if (locals.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= locals.error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+
+                <% if (locals.success) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= locals.success %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+
+                <div class="row">
+                    <!-- Estadísticas -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Vacunaciones del Mes
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= locals.stats && locals.stats.monthly_vaccinations ? locals.stats.monthly_vaccinations : 0 %>
+                                        </div>
+                                        <div class="mt-2 text-muted small">
+                                            <i class="fas fa-arrow-up text-success"></i>
+                                            Más que el mes anterior
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-syringe fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Tratamientos Activos
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= locals.stats && locals.stats.active_treatments ? locals.stats.active_treatments : 0 %>
+                                        </div>
+                                        <div class="mt-2 text-muted small">
+                                            2 finalizan esta semana
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-stethoscope fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-danger shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                            Vacunas Vencidas
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= locals.stats && locals.stats.expired_vaccines ? locals.stats.expired_vaccines : 0 %>
+                                        </div>
+                                        <div class="mt-2 text-muted small">
+                                            Requiere atención inmediata
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Próxima Vacunación
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <%= locals.stats && locals.stats.next_vaccination ? locals.stats.next_vaccination : 0 %>
+                                        </div>
+                                        <div class="mt-2 text-muted small">
+                                            <% if (locals.stats && locals.stats.next_vaccination > 0) { %>
+                                            <i class="fas fa-arrow-up text-success"></i>
+                                            En los próximos 7 días
+                                            <% } else { %>
+                                            Sin vacunaciones programadas
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Historial de Vacunaciones y Tratamientos</h6>
+                                <div>
+                                    <button class="btn btn-success btn-sm mr-2" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                                        <i class="fas fa-file-pdf fa-sm"></i> Reporte
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newVaccinationModal">
+                                        <i class="fas fa-plus fa-sm"></i> Nueva
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Animal</th>
+                                                <th>Tipo</th>
+                                                <th>Vacuna</th>
+                                                <th>Fecha</th>
+                                                <th>Tratamientos</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody id="vaccinationsTable">
+                                            <% if (locals.vaccinations && locals.vaccinations.length > 0) { %>
+                                                <% locals.vaccinations.forEach(function(vaccination) { %>
+                                                <tr id="vaccination-<%= vaccination.id %>">
+                                                    
+                                                    <td>
+                                                        <div class="font-weight-bold text-primary">
+                                                            <%= vaccination.animal_id %>
+                                                        </div>
+                                                        <div class="text-muted small">
+                                                            <%= vaccination.animal_name %> - <%= vaccination.breed %>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-<%= vaccination.animal_type === 'cattle' ? 'primary' : 'success' %>">
+                                                            <%= vaccination.animal_type === 'cattle' ? 'Ganado' : 'Porcino' %>
+                                                        </span>
+                                                    </td>
+                                                    <td><%= vaccination.vaccine %></td>
+                                                    <td><%= new Date(vaccination.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></td>
+                                                    <td class="align-middle">
+    <strong><%= vaccination.nombre_tratamiento %></strong>
+    
+    <div style="font-size: 0.9em; margin-top: 4px;">
+        <span class="text-muted">Dosis:</span> <%= vaccination.dosage %> <br>
+        <span class="text-muted">Período:</span> 
+        <%= new Date(vaccination.start_date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) %> 
+        al 
+        <%= new Date(vaccination.end_date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) %>
+    </div>
+
+    <% if(vaccination.observations) { %>
+        <small class="text-muted" style="display: block; margin-top: 4px; font-style: italic;">
+            Obs: <%= vaccination.observations %>
+        </small>
+    <% } %>
+</td>
+                                                    <td>
+                                                        <span class="badge bg-<%= 
+                                                            vaccination.status === 'Completada' ? 'success' :
+                                                            vaccination.status === 'Pendiente' ? 'warning' : 'danger'
+                                                        %>">
+                                                            <%= vaccination.status %>
+                                                        </span>
+                                                    </td>
+                                                    <!-- Busca la sección de la tabla donde están las acciones y reemplaza con esto: -->
+<td>
+    <div class="btn-group" role="group">
+        <button class="btn btn-sm btn-outline-primary edit-vaccination" 
+                data-id="<%= vaccination.id %>"
+                data-bs-toggle="modal" 
+                data-bs-target="#editVaccinationModal">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger delete-vaccination ml-1" 
+                data-id="<%= vaccination.id %>"
+                data-name="<%= vaccination.animal_name %>"
+                data-vaccine="<%= vaccination.vaccine %>">
+            <i class="fas fa-trash"></i>
+        </button>
+        
+    </div>
+</td>
+                                                </tr>
+                                                <% }); %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td colspan="6" class="text-center">No hay vacunaciones registradas</td>
+                                                </tr>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Agenda Sanitaria</h6>
+                                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newActivityModal">
+                                    <i class="fas fa-plus me-1"></i>Nueva Actividad
+                                </button>
+                            </div>
+                            <div class="card-body" id="agendaList">
+                                <% if (locals.activities && locals.activities.length > 0) { %>
+                                    <% locals.activities.forEach(function(activity) { %>
+                                    <div class="mb-3 p-3 bg-light rounded">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <% 
+                                            let activityColor = '#4e73df'; // Color por defecto
+                                            if (activity.activity_type === 'revision') {
+                                                activityColor = '#f6c23e';
+                                            } else if (activity.activity_type === 'control') {
+                                                activityColor = '#36b9cc';
+                                            } else if (activity.activity_type === 'tratamiento') {
+                                                activityColor = '#1cc88a';
+                                            } else if (activity.activity_type === 'desparasitacion') {
+                                                activityColor = '#e74a3b';
+                                            }
+                                            %>
+                                            <h6 class="font-weight-bold mb-0" style="color: <%= activityColor %>">
+                                                <% 
+                                                let activityIcon = 'syringe';
+                                                if (activity.activity_type === 'revision') {
+                                                    activityIcon = 'stethoscope';
+                                                } else if (activity.activity_type === 'control') {
+                                                    activityIcon = 'weight';
+                                                } else if (activity.activity_type === 'tratamiento') {
+                                                    activityIcon = 'file-medical';
+                                                } else if (activity.activity_type === 'desparasitacion') {
+                                                    activityIcon = 'capsules';
+                                                }
+                                                %>
+                                                <i class="fas fa-<%= activityIcon %> me-2"></i>
+                                                <%= activity.description %>
+                                            </h6>
+                                            <% 
+                                            let priorityClass = 'primary';
+                                            if (activity.priority === 'urgente') {
+                                                priorityClass = 'danger';
+                                            } else if (activity.priority === 'alta') {
+                                                priorityClass = 'warning';
+                                            } else if (activity.priority === 'baja') {
+                                                priorityClass = 'secondary';
+                                            }
+                                            %>
+                                            <span class="badge bg-<%= priorityClass %>">
+                                                <%= activity.priority %>
+                                            </span>
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            <%= new Date(activity.scheduled_date).toLocaleDateString('es-ES', { 
+                                                year: 'numeric', 
+                                                month: '2-digit', 
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            }) %>
+                                        </div>
+                                        <% if (activity.frequency && activity.frequency !== '') { %>
+                                        <div class="text-muted small">
+                                            <i class="fas fa-redo me-1"></i>
+                                            <% 
+                                            let frequencyText = '';
+                                            if (activity.frequency === 'weekly') {
+                                                frequencyText = 'Cada semana';
+                                            } else if (activity.frequency === 'biweekly') {
+                                                frequencyText = 'Cada 2 semanas';
+                                            } else if (activity.frequency === 'monthly') {
+                                                frequencyText = 'Cada mes';
+                                            } else if (activity.frequency === 'quarterly') {
+                                                frequencyText = 'Cada trimestre';
+                                            }
+                                            %>
+                                            <%= frequencyText %>
+                                        </div>
+                                        <% } %>
+                                        <div class="mt-2">
+                                            <% 
+                                            let statusClass = 'info';
+                                            let statusText = 'Programada';
+                                            if (activity.status === 'en_proceso') {
+                                                statusClass = 'warning';
+                                                statusText = 'En Proceso';
+                                            } else if (activity.status === 'completada') {
+                                                statusClass = 'success';
+                                                statusText = 'Completada';
+                                            } else if (activity.status === 'cancelada') {
+                                                statusClass = 'secondary';
+                                                statusText = 'Cancelada';
+                                            }
+                                            %>
+                                            <span class="badge bg-<%= statusClass %>">
+                                                <%= statusText %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                                <% } else { %>
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No hay actividades programadas</p>
+                                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newActivityModal">
+                                            <i class="fas fa-plus me-1"></i>Agregar primera actividad
+                                        </button>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="card shadow">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Vacunas Pendientes</h6>
+                            </div>
+                            <div class="card-body">
+                                <% if (locals.pendingVaccines && locals.pendingVaccines.length > 0) { %>
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong><%= locals.pendingVaccines.length %> vacunas próximas a vencer</strong>
+                                        <p class="mb-0 small">Revisar programa de vacunación</p>
+                                    </div>
+                                    
+                                    <div class="list-group" id="pendingVaccines">
+                                        <% locals.pendingVaccines.forEach(function(vaccine) { %>
+                                        <% 
+                                        let vaccineBadgeClass = 'warning';
+                                        if (vaccine.status === 'Vencida') {
+                                            vaccineBadgeClass = 'danger';
+                                        } else if (vaccine.status === 'Completada') {
+                                            vaccineBadgeClass = 'info';
+                                        }
+                                        %>
+                                        <div class="list-group-item list-group-item-action">
+                                            <div class="d-flex justify-content-between">
+                                                <h6 class="mb-1"><%= vaccine.vaccine %></h6>
+                                                <span class="badge bg-<%= vaccineBadgeClass %>">
+                                                    <%= vaccine.status %>
+                                                </span>
+                                            </div>
+                                            <p class="mb-1 small"><%= vaccine.count %> animales pendientes</p>
+                                        </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <strong>¡Excelente!</strong>
+                                        <p class="mb-0 small">No hay vacunas pendientes</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Generar Reporte -->
+    <div class="modal fade" id="generateReportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generar Reporte de Vacunaciones</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="generateReportForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Animal</label>
+                            <select class="form-control" name="animal_type" id="report_animal_type">
+                                <option value="all">Todos los Animales</option>
+                                <option value="cattle">Solo Ganado</option>
+                                <option value="pig">Solo Porcinos</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Periodo</label>
+                            <select class="form-control" name="period" id="report_period">
+                                <option value="today">Hoy</option>
+                                <option value="week">Esta Semana</option>
+                                <option value="month">Este Mes</option>
+                                <option value="quarter">Este Trimestre</option>
+                                <option value="year">Este Año</option>
+                                <option value="custom">Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="row" id="customDates" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha Desde</label>
+                                <input type="date" class="form-control" name="start_date" id="report_start_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha Hasta</label>
+                                <input type="date" class="form-control" name="end_date" id="report_end_date">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Estado</label>
+                            <select class="form-control" name="status" id="report_status">
+                                <option value="all">Todos los Estados</option>
+                                <option value="Completada">Completadas</option>
+                                <option value="Pendiente">Pendientes</option>
+                                <option value="Vencida">Vencidas</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Formato del Reporte</label>
+                            <select class="form-control" name="format" id="report_format">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            El reporte incluirá: ID del animal, nombre, tipo, vacuna, fecha, estado, tratamientos y observaciones.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-pdf me-2"></i>Generar Reporte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Vacunación -->
+    <div class="modal fade" id="newVaccinationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva Vacunación y Tratamiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="newVaccinationForm">
+                    <input type="hidden" name="vaccination_id" id="treatment_vaccination_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Animal</label>
+                            <select class="form-control" name="animal_type" id="animal_type" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="cattle">Ganado Bovino</option>
+                                <option value="pig">Porcino</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Animal</label>
+                            <select class="form-control" name="animal_id" id="animal_id" required>
+                                <option value="">Primero seleccione el tipo</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Vacuna</label>
+                            <input type="text" class="form-control" name="vaccine" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" class="form-control" name="date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Estado</label>
+                            <select class="form-control" name="status" required>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Completada">Completada</option>
+                                <option value="Vencida">Vencida</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Medicamento/Tratamiento</label>
+                            <input type="text" class="form-control" name="treatment" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dosis</label>
+                            <input type="text" class="form-control" name="dosage" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Inicio</label>
+                            <input type="date" class="form-control" name="start_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Fin</label>
+                            <input type="date" class="form-control" name="end_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" name="observations" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Vacunación -->
+    <div class="modal fade" id="editVaccinationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Vacunación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editVaccinationForm">
+                    <input type="hidden" name="id" id="edit_vaccination_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Vacuna</label>
+                            <input type="text" class="form-control" name="vaccine" id="edit_vaccine" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" class="form-control" name="date" id="edit_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Estado</label>
+                            <select class="form-control" name="status" id="edit_status" required>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Completada">Completada</option>
+                                <option value="Vencida">Vencida</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Medicamento/Tratamiento</label>
+                            <input type="text" class="form-control" name="treatment" id="edit_treatment" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dosis</label>
+                            <input type="text" class="form-control" name="dosage" id="edit_dosage" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Inicio</label>
+                            <input type="date" class="form-control" name="start_date" id="edit_start_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Fin</label>
+                            <input type="date" class="form-control" name="end_date" id="edit_end_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" name="observations" id="edit_observations" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Tratamiento -->
+    <div class="modal fade" id="addTreatmentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Tratamiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="addTreatmentForm">
+                    <input type="hidden" name="vaccination_id" id="treatment_vaccination_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Medicamento/Tratamiento</label>
+                            <input type="text" class="form-control" name="treatment" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dosis</label>
+                            <input type="text" class="form-control" name="dosage" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Inicio</label>
+                            <input type="date" class="form-control" name="start_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Fin</label>
+                            <input type="date" class="form-control" name="end_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" name="observations" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Tratamiento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Actividad -->
+    <div class="modal fade" id="newActivityModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva Actividad Sanitaria</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="newActivityForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Actividad</label>
+                            <select class="form-control" name="activity_type" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="vacunacion">Vacunación</option>
+                                <option value="revision">Revisión General</option>
+                                <option value="control">Control de Peso</option>
+                                <option value="tratamiento">Tratamiento</option>
+                                <option value="desparasitacion">Desparasitación</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <input type="text" class="form-control" name="description" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha Programada</label>
+                            <input type="datetime-local" class="form-control" name="scheduled_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Frecuencia</label>
+                            <select class="form-control" name="frequency">
+                                <option value="">Sin repetición</option>
+                                <option value="weekly">Semanal</option>
+                                <option value="biweekly">Quincenal</option>
+                                <option value="monthly">Mensual</option>
+                                <option value="quarterly">Trimestral</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prioridad</label>
+                            <select class="form-control" name="priority" required>
+                                <option value="baja">Baja</option>
+                                <option value="media">Media</option>
+                                <option value="alta">Alta</option>
+                                <option value="urgente">Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Programar Actividad</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Mostrar/ocultar fechas personalizadas para reportes
+        $('#report_period').change(function() {
+            if ($(this).val() === 'custom') {
+                $('#customDates').show();
+            } else {
+                $('#customDates').hide();
+            }
+        });
+
+        // Generar Reporte
+        $('#generateReportForm').submit(function(e) {
+            e.preventDefault();
+            
+            const formData = $(this).serialize();
+        
+            
+            // Descargar reporte
+            const url = '/health/generate-report?' + formData;
+            window.open(url, '_blank');
+            
+            $('#generateReportModal').modal('hide');
+        });
+
+        // Cargar animales según tipo seleccionado
+        $('#animal_type').change(function() {
+            const animalType = $(this).val();
+            if (animalType) {
+                $.ajax({
+                    url: '/health/get-animals',
+                    method: 'POST',
+                    data: { animal_type: animalType },
+                    success: function(response) {
+                        $('#animal_id').empty().append('<option value="">Seleccionar animal</option>');
+                        response.forEach(function(animal) {
+                            $('#animal_id').append(`<option value="${animal.id}">${animal.name} (${animal.breed})</option>`);
+                        });
+                    }
+                });
+            }
+        });
+
+        // Nueva Vacunación
+        $('#newVaccinationForm').submit(function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: '/health/add-vaccination',
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Vacunación registrada correctamente');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Error al registrar la vacunación');
+                }
+            });
+        });
+
+        $('.edit-vaccination').click(function() {
+            const id = $(this).data('id');
+            const row = $(this).closest('tr');
+            
+            $('#edit_vaccination_id').val(id);
+            $('#edit_vaccine').val(row.find('td:nth-child(3)').text());
+            $('#edit_date').val(row.find('td:nth-child(4)').text());
+            $('#edit_status').val(row.find('.badge').text().trim());
+            $('#edit_treatment').val(row.find('td:nth-child(5)').text());
+            $('#edit_dosage').val(row.find('td:nth-child(6)').text());
+            $('#edit_start_date').val(row.find('td:nth-child(7)').text());
+            $('#edit_end_date').val(row.find('td:nth-child(8)').text());
+            $('#edit_observations').val(row.find('td:nth-child(9)').text());
+        });
+
+        $('#editVaccinationForm').submit(function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: '/health/update-vaccination/' + $('#edit_vaccination_id').val(),
+                method: 'PUT',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Vacunación actualizada correctamente');
+                        location.reload();
+                    }
+                },
+                error: function() {
+                    alert('Error al actualizar la vacunación');
+                }
+            });
+        });
+
+        // Agregar Tratamiento
+        $('.add-treatment').click(function() {
+            $('#treatment_vaccination_id').val($(this).data('id'));
+        });
+
+        $('#addTreatmentForm').submit(function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: '/health/add-treatment',
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Tratamiento agregado correctamente');
+                        location.reload();
+                    }
+                },
+                error: function() {
+                    alert('Error al agregar el tratamiento');
+                }
+            });
+        });
+
+        // Nueva Actividad
+        $('#newActivityForm').submit(function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: '/health/add-activity',
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Actividad programada correctamente');
+                        location.reload();
+                    }
+                },
+                error: function() {
+                    alert('Error al programar la actividad');
+                }
+            });
+        });
+    });
+    // Eliminar Vacunación
+$('.delete-vaccination').click(function(e) {
+    e.preventDefault();
+    
+    const id = $(this).data('id');
+    const animalName = $(this).data('name');
+    const vaccine = $(this).data('vaccine');
+    
+    if (confirm(`¿Está seguro de eliminar la vacunación de "${vaccine}" para el animal "${animalName}"? Esta acción no se puede deshacer.`)) {
+        $.ajax({
+            url: '/health/delete-vaccination/' + id,
+            method: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    alert('Vacunación eliminada correctamente');
+                    // Remover la fila de la tabla
+                    $('#vaccination-' + id).remove();
+                    
+                    // Si no quedan filas, mostrar mensaje
+                    if ($('#vaccinationsTable tr').length === 1) { // Solo queda el encabezado
+                        $('#vaccinationsTable').append('<tr><td colspan="6" class="text-center">No hay vacunaciones registradas</td></tr>');
+                    }
+                } else {
+                    alert('Error: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Error al eliminar la vacunación: ' + (xhr.responseJSON?.error || 'Error desconocido'));
+            }
+        });
+    }
+});
+    </script>
+</body>
+</html>
