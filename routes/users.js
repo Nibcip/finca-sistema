@@ -36,7 +36,7 @@ router.get('/', (req, res) => {
     }
 
 
-    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor') {
+    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor' && req.session.user.role !== 'operador') {
         console.log('⚠️ Usuario no es admin, redirigiendo a dashboard');
         return res.redirect('/dashboard');
     }
@@ -75,7 +75,7 @@ router.get('/:id', (req, res) => {
     }
 
     // Verificar que sea administrador
-    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor') {
+    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor' && req.session.user.role !== 'operador') {
         return res.status(403).json({ 
             success: false, 
             error: 'Solo administradores pueden ver usuarios' 
@@ -115,7 +115,7 @@ router.get('/:id', (req, res) => {
 router.put('/:id/status', (req, res) => {
     console.log('🔄 PUT /users/' + req.params.id + '/status solicitado');
     
-    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor') {
+    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor' && req.session.user.role !== 'operador') {
         return res.status(403).json({ 
             success: false, 
             error: 'Solo administradores pueden cambiar estados de usuario' 
@@ -174,7 +174,7 @@ router.put('/:id/status', (req, res) => {
 router.post('/create', (req, res) => {
     console.log('📝 POST /users/create recibido');
     
-    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor') {
+    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor' && req.session.user.role !== 'operador') {
         return res.status(403).json({ 
             success: false, 
             error: 'Solo administradores pueden crear usuarios' 
@@ -258,7 +258,7 @@ router.post('/create', (req, res) => {
 router.put('/:id', (req, res) => {
     console.log('✏️ PUT /users/' + req.params.id + ' solicitado');
     
-    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor') {
+    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor' && req.session.user.role !== 'operador') {
         return res.status(403).json({ 
             success: false, 
             error: 'Solo administradores pueden editar usuarios' 
@@ -379,7 +379,7 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
     console.log('🗑️ DELETE /users/' + req.params.id + ' solicitado');
     
-    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor') {
+    if (req.session.user.role !== 'admin' && req.session.user.role !== 'supervisor' && req.session.user.role !== 'operador') {
         return res.status(403).json({ 
             success: false, 
             error: 'Solo administradores pueden eliminar usuarios' 
@@ -450,5 +450,6 @@ router.get('/:id/check-status', (req, res) => {
         });
     });
 });
+
 
 module.exports = router;
