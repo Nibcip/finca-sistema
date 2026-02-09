@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('mysql2/promise');
 const dayjs = require('dayjs');
-const pool = require('../config/database');
+const pool = require('../config/database'),promise();
 
 
 // Middleware para verificar autenticación
@@ -434,5 +434,6 @@ router.get('/debug-db', requireAuth, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 module.exports = router;
