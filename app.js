@@ -5,10 +5,9 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-
 const app = express();
 const port = 30030;
-
+const db = require('./config/database');
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -23,19 +22,9 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 
-const dbConfig = {
-    host: 'bobq0xtg7ibr1edpxglr-mysql.services.clever-cloud.com',
-    user: 'uwsvkjgawwwi42gb',
-    password: 'tky7Lu7Xphlurj54btpM',
-    database: 'bobq0xtg7ibr1edpxglr',
-    port: 3306,
-    connectTimeout: 10000,
-    acquireTimeout: 10000,
-    timeout: 10000
-};
 
-// Variable global para la conexión a la base de datos
-let db;
+
+
 
 app.locals.getDbConnection = () => {
     if (!db) {
@@ -44,65 +33,23 @@ app.locals.getDbConnection = () => {
     return db;
 };
 
+
+
+
 // Función para conectar a la base de datos
 async function initializeDatabase() {
     try {
-        console.log('🔌 Intentando conectar a MySQL...');
-        
-        // Primero intentamos conectarnos sin base de datos para crearla si no existe
-        const tempConfig = { ...dbConfig };
-        delete tempConfig.database;
-        
-        const tempConnection = mysql.createConnection(tempConfig);
-        
-        await new Promise((resolve, reject) => {
-            tempConnection.connect((err) => {
-                if (err) {
-                    console.error('❌ Error conectando a MySQL:', err.message);
-                    reject(err);
-                } else {
-                    console.log('✅ Conectado a MySQL');
-                    resolve();
-                }
-            });
-        });
-
-        // Crear base de datos si no existe
-        await new Promise((resolve, reject) => {
-            tempConnection.query('CREATE DATABASE IF NOT EXISTS ganasys', (err) => {
-                if (err) reject(err);
-                else {
-                    console.log('✅ Base de datos "ganasys" verificada');
-                    resolve();
-                }
-            });
-        });
-
-        tempConnection.end();
-
-        // Ahora conectamos a la base de datos específica
-        db = mysql.createConnection(dbConfig);
-        
-        await new Promise((resolve, reject) => {
-            db.connect((err) => {
-                if (err) reject(err);
-                else {
-                    console.log('✅ Conectado a base de datos: ganasys');
-                    resolve();
-                }
-            });
-        });
-
-        // Crear estructura de tablas
         await createBasicStructure();
-        return db;
-
+        console.log('Base de datos lista y estructurada');
     } catch (error) {
-        console.error('❌ Error inicializando base de datos:', error.message);
+        console.error('Error inicializando base de datos:', error.message);
+        if (error.code === 'ER_USER_LIMIT_REACHED') {
+            console.error(' El servidor de base de datos está lleno. Reinicia el servicio en Render.');
+
+        }
         throw error;
     }
 }
-
 // Función para crear estructura básica
 function createBasicStructure() {
     return new Promise((resolve, reject) => {

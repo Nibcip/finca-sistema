@@ -3,14 +3,7 @@ const router = express.Router();
 const mysql = require('mysql2');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
-
-const db = mysql.createConnection({
-    host: 'bobq0xtg7ibr1edpxglr-mysql.services.clever-cloud.com',
-    user: 'uwsvkjgawwwi42gb',
-    password: 'tky7Lu7Xphlurj54btpM',
-    database: 'bobq0xtg7ibr1edpxglr',
-    port: 3306
-});
+const db = require('../config/database');
 
 // Middleware de autenticación
 const requireAuth = (req, res, next) => {

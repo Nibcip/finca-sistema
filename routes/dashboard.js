@@ -1,14 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('mysql2');
-
-const db = mysql.createConnection({
-    host: 'bobq0xtg7ibr1edpxglr-mysql.services.clever-cloud.com',
-    user: 'uwsvkjgawwwi42gb',
-    password: 'tky7Lu7Xphlurj54btpM',
-    database: 'bobq0xtg7ibr1edpxglr',
-    port: 3306
-});
+const db = require('../config/database');
 
 // Ruta del dashboard
 router.get('/', (req, res) => {
@@ -21,7 +14,6 @@ router.get('/', (req, res) => {
     const month = currentDate.getMonth() + 1;
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    // Obtener estadísticas para el dashboard
     const statsQuery = `
         SELECT 
             (SELECT COUNT(*) FROM cattle) as cattle_count,

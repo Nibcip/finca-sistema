@@ -3,14 +3,7 @@ const router = express.Router();
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-
-const db = mysql.createConnection({
-    host: 'bobq0xtg7ibr1edpxglr-mysql.services.clever-cloud.com',
-    user: 'uwsvkjgawwwi42gb',
-    password: 'tky7Lu7Xphlurj54btpM',
-    database: 'bobq0xtg7ibr1edpxglr',
-    port: 3306
-});
+const db = require('../config/database');
 // Ruta GET de login
 router.get('/login', (req, res) => {
     if (req.session.user) {
